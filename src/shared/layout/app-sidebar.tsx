@@ -45,7 +45,10 @@ export function AppSidebar({ user }: AppSidebarProps) {
     pathname === ROUTES.HOME ||
     pathname.startsWith("/diplomas") ||
     pathname.startsWith("/exams");
-  const isProfileActive = pathname === ROUTES.PROFILE;
+  const isProfileActive =
+    pathname === ROUTES.PROFILE ||
+    pathname === ROUTES.CHANGE_PASSWORD ||
+    pathname.startsWith("/account");
 
   return (
     <aside className="w-64 h-screen h-dvh border-e border-border/70 bg-brand-blue-50 flex flex-col justify-between shrink-0 p-6 select-none">

@@ -4,6 +4,7 @@ import type {
   IExamQuestionsPayload,
   GetExamQuestionsParams,
 } from "@/shared/lib/types/question";
+import type { IExamDetailsPayload } from "@/shared/lib/types/exam";
 
 export async function getExamQuestions(
   examId: string,
@@ -60,6 +61,48 @@ export async function getClientExamQuestions(
 
   if (!res.ok || !data.status || !data.payload) {
     throw new Error(data.message || "Failed to fetch exam questions");
+  }
+
+  return data.payload;
+}
+
+export async function getExamById(
+  id: string,
+  token?: string,
+): Promise<IApiResponse<IExamDetailsPayload>> {
+  const url = `${env.NEXT_PUBLIC_API_URL}/exams/${id}`;
+  const headers: HeadersInit = {
+    "Content-Type": "application/json",
+  };
+
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
+
+  const res = await fetch(url, {
+    method: "GET",
+    headers,
+    cache: "no-store",
+  });
+
+  const payload: IApiResponse<IExamDetailsPayload> = await res.json();
+
+  if (!res.ok || !payload.status) {
+    throw new Error(payload.message || "Failed to fetch exam details");
+  }
+
+  return payload;
+}
+
+export async function getClientExamById(
+  id: string,
+): Promise<IExamDetailsPayload> {
+  const url = `/api/exams/${id}`;
+  const res = await fetch(url);
+  const data: IApiResponse<IExamDetailsPayload> = await res.json();
+
+  if (!res.ok || !data.status || !data.payload) {
+    throw new Error(data.message || "Failed to fetch exam details");
   }
 
   return data.payload;

@@ -20,7 +20,7 @@ export function useExamTimer({
 
   const storageKey = `exam_timer_${examId}`;
 
-  // Helper to get or initialize target end time
+  // Read or initialize target end time in sessionStorage so refresh doesn't reset the countdown
   const getInitialRemaining = useCallback((): number => {
     if (typeof window === "undefined") return totalSeconds;
 
@@ -41,11 +41,9 @@ export function useExamTimer({
     return totalSeconds;
   }, [storageKey, totalSeconds]);
 
-  // Lazy state initialization to prevent setState in effect body
   const [remainingSeconds, setRemainingSeconds] = useState<number>(getInitialRemaining);
 
   useEffect(() => {
-    // If already zero, trigger onTimeUp immediately
     if (remainingSeconds <= 0) {
       onTimeUp?.();
       return;
@@ -69,7 +67,7 @@ export function useExamTimer({
   const seconds = remainingSeconds % 60;
   const formattedTime = `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
 
-  // Percentage from 0 to 100 (for SVG circle progress)
+  // Percentage from 0 to 100 (for circular SVG progress ring)
   const progressPercentage = Math.max(
     0,
     Math.min(100, (remainingSeconds / totalSeconds) * 100),

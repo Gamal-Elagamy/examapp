@@ -1,37 +1,62 @@
 "use client";
 
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ChevronLeft, ChevronRight, HelpCircle, AlertCircle } from "lucide-react";
+import { ChevronLeft, ChevronRight, HelpCircle, AlertCircle, Loader2 } from "lucide-react";
 import { ROUTES } from "@/routes";
 import { useExamQuestions } from "../hooks/use-exam-questions";
+import { useExamDetails } from "../hooks/use-exam-details";
 import { useExamTimer } from "../hooks/use-exam-timer";
+import { useCreateSubmission } from "@/features/submissions/hooks/use-create-submission";
+import { SubmissionResultsView } from "@/features/submissions/components/submission-results-view";
 import { QuestionCard } from "./question-card";
 import { ExamTimer } from "./exam-timer";
 import type { IQuestion } from "@/shared/lib/types/question";
+import type { IExamDetails } from "@/shared/lib/types/exam";
+import type { ISubmissionDetailsPayload } from "@/shared/lib/types/submission";
 
 interface ExamQuestionsViewProps {
   examId: string;
   initialQuestions?: IQuestion[];
-  examTitle?: string;
-  diplomaTitle?: string;
-  durationMinutes?: number;
+  initialExam?: IExamDetails;
 }
 
 export function ExamQuestionsView({
   examId,
   initialQuestions,
-  examTitle: initialExamTitle,
-  diplomaTitle: initialDiplomaTitle,
-  durationMinutes = 20,
+  initialExam,
 }: ExamQuestionsViewProps) {
   const router = useRouter();
 
-  const { data: questions = [], isLoading, error } = useExamQuestions({
+  // Submission result state (when exam is submitted, transitions to Results view)
+  const [submissionResult, setSubmissionResult] = useState<ISubmissionDetailsPayload | null>(null);
+
+  // Exam start time timestamp
+  const startedAt = useMemo(() => new Date().toISOString(), []);
+
+  // Fetch questions for this exam
+  const { data: questions = [], isLoading: isQuestionsLoading, error: questionsError } =
+    useExamQuestions({
+      examId,
+      initialData: initialQuestions,
+    });
+
+  // Fetch exam metadata (duration, diploma details, questionsCount)
+  const { data: examData, isLoading: isExamLoading } = useExamDetails({
     examId,
-    initialData: initialQuestions,
+    initialData: initialExam,
   });
+
+  const exam = examData || initialExam;
+  const diploma = exam?.diploma;
+
+  const examTitle = exam?.title || questions[0]?.exam?.title || "Exam";
+  const diplomaTitle = diploma?.title || "Diploma";
+  const diplomaLink = diploma?.id ? ROUTES.EXAMS.BY_DIPLOMA(diploma.id) : ROUTES.HOME;
+
+  // Real duration in minutes from the exam endpoint (e.g. 50 or 20)
+  const totalDurationMinutes = exam?.duration || 20;
 
   const [currentIndex, setCurrentIndex] = useState(0);
 
@@ -63,40 +88,57 @@ export function ExamQuestionsView({
     [currentIndex, examId, questions],
   );
 
-  const totalQuestions = questions.length;
+  const totalQuestions = exam?.questionsCount || questions.length || 0;
   const currentQuestion = questions[currentIndex];
 
-  const examTitle = useMemo(() => {
-    return (
-      questions[0]?.exam?.title ||
-      initialExamTitle ||
-      "Exam"
+  // Submit Exam Mutation (MVC Controller)
+  const { mutate: submitExam, isPending: isSubmitting } = useCreateSubmission({
+    onSuccess: (data) => {
+      setSubmissionResult(data);
+      if (typeof window !== "undefined") {
+        sessionStorage.removeItem(`exam_answers_${examId}`);
+        sessionStorage.removeItem(`exam_timer_${examId}`);
+      }
+    },
+    onError: (error) => {
+      alert(error.message || "Failed to submit exam");
+    },
+  });
+
+  const handleSubmit = useCallback(() => {
+    if (isSubmitting) return;
+
+    const formattedAnswers = Object.entries(selectedAnswers).map(
+      ([questionId, answerId]) => ({ questionId, answerId }),
     );
-  }, [questions, initialExamTitle]);
 
-  const diplomaTitle = initialDiplomaTitle || "Frontend Development";
+    submitExam({
+      examId,
+      answers: formattedAnswers,
+      startedAt,
+    });
+  }, [examId, isSubmitting, selectedAnswers, startedAt, submitExam]);
 
-  // Handle Time's Up
+  // Handle Time's Up: automatically submits the exam
   const handleTimeUp = useCallback(() => {
-    // Auto-handled or notice
-  }, []);
+    handleSubmit();
+  }, [handleSubmit]);
 
+  // Exam-level countdown timer
   const { formattedTime, progressPercentage, isTimeUp } = useExamTimer({
     examId,
-    totalDurationMinutes: durationMinutes,
+    totalDurationMinutes,
     onTimeUp: handleTimeUp,
   });
 
   const isFirstQuestion = currentIndex === 0;
-  const isLastQuestion = currentIndex === totalQuestions - 1;
+  const isLastQuestion = totalQuestions > 0 ? currentIndex === totalQuestions - 1 : false;
 
   const handleNext = () => {
     if (!isLastQuestion) {
       setCurrentIndex((prev) => prev + 1);
     } else {
-      // Completed exam
-      alert("Exam submitted successfully!");
-      router.push(ROUTES.HOME);
+      handleSubmit();
     }
   };
 
@@ -106,8 +148,35 @@ export function ExamQuestionsView({
     }
   };
 
+  const handleRestart = useCallback(() => {
+    setSubmissionResult(null);
+    setCurrentIndex(0);
+    setSelectedAnswers({});
+    if (typeof window !== "undefined") {
+      sessionStorage.removeItem(`exam_answers_${examId}`);
+      sessionStorage.removeItem(`exam_timer_${examId}`);
+    }
+  }, [examId]);
+
+  const handleExplore = useCallback(() => {
+    router.push(ROUTES.HOME);
+  }, [router]);
+
+  // Progress Bar calculation: 100% when submitted, otherwise increases with questions
   const answeredCount = Object.keys(selectedAnswers).length;
-  const progressBarWidth = totalQuestions > 0 ? ((currentIndex + 1) / totalQuestions) * 100 : 0;
+  const isCurrentAnswered = !!(currentQuestion && selectedAnswers[currentQuestion.id]);
+
+  const progressBarWidth = useMemo(() => {
+    if (submissionResult) return 100;
+    if (totalQuestions === 0) return 0;
+    const count = Math.max(
+      answeredCount,
+      currentIndex > 0 ? currentIndex : isCurrentAnswered ? 1 : 0,
+    );
+    return Math.min(100, Math.max(0, (count / totalQuestions) * 100));
+  }, [submissionResult, totalQuestions, answeredCount, currentIndex, isCurrentAnswered]);
+
+  const isLoading = isQuestionsLoading && isExamLoading && !initialQuestions?.length;
 
   return (
     <div className="space-y-6 max-w-5xl">
@@ -120,9 +189,12 @@ export function ExamQuestionsView({
           Diplomas
         </Link>
         <span>/</span>
-        <span className="truncate max-w-[200px] text-muted-foreground">
+        <Link
+          href={diplomaLink}
+          className="hover:text-primary transition-colors cursor-pointer truncate max-w-[200px]"
+        >
           {diplomaTitle}
-        </span>
+        </Link>
         <span>/</span>
         <span className="text-primary font-semibold truncate max-w-[200px]">
           {examTitle}
@@ -149,89 +221,116 @@ export function ExamQuestionsView({
       </div>
 
       {/* Error Notice */}
-      {error && (
+      {questionsError && (
         <div className="rounded-xl border border-destructive/20 bg-destructive/5 p-4 text-sm text-destructive flex items-center gap-3">
           <AlertCircle className="size-5 shrink-0" />
           <span>Failed to load questions. Please check your connection and try again.</span>
         </div>
       )}
 
-      {/* Main Question Card Area */}
-      {!isLoading && currentQuestion && (
+      {/* Main Container Area */}
+      {!isLoading && (currentQuestion || submissionResult) && (
         <div className="rounded-2xl border border-border/80 bg-white p-6 sm:p-8 shadow-2xs space-y-8">
           {/* Top Progress & Meta Bar */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-border/60">
-            {/* Left: Quiz Title & Progress Bar */}
-            <div className="space-y-2 flex-1 max-w-md">
-              <span className="text-xs sm:text-sm font-mono text-muted-foreground font-medium select-none">
-                {diplomaTitle} - {examTitle} Quiz
-              </span>
-              {/* Progress Line */}
-              <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+          <div className="flex items-center justify-between gap-5 sm:gap-6 pb-6 border-b border-border/60">
+            {/* Left: Info Row & Full-Width Progress Bar */}
+            <div className="flex-1 space-y-3 min-w-0">
+              {/* Line 1: Title on left, Question Counter on right */}
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-xs sm:text-sm font-mono text-muted-foreground font-medium select-none truncate">
+                  {diplomaTitle} - {examTitle} Quiz
+                </span>
+                <div className="text-xs sm:text-sm font-mono text-muted-foreground select-none shrink-0">
+                  Question <span className="text-primary font-bold">
+                    {submissionResult ? totalQuestions : currentIndex + 1}
+                  </span> of {totalQuestions}
+                </div>
+              </div>
+
+              {/* Line 2: Full-Width Horizontal Progress Bar */}
+              <div className="h-2.5 w-full bg-[#e0edff] rounded-full overflow-hidden">
                 <div
                   style={{ width: `${progressBarWidth}%` }}
-                  className="h-full bg-primary rounded-full transition-all duration-300"
+                  className="h-full bg-primary rounded-full transition-all duration-500 ease-out"
                 />
               </div>
             </div>
 
-            {/* Right: Question Counter & Countdown Timer */}
-            <div className="flex items-center gap-5 self-end sm:self-auto shrink-0">
-              <div className="text-xs sm:text-sm font-mono text-muted-foreground select-none">
-                Question <span className="text-primary font-bold">{currentIndex + 1}</span> of {totalQuestions}
+            {/* Vertical Divider & Timer (hidden once submitted) */}
+            {!submissionResult && (
+              <>
+                <div className="h-10 w-px bg-border/80 hidden sm:block shrink-0" />
+                <ExamTimer
+                  formattedTime={formattedTime}
+                  progressPercentage={progressPercentage}
+                  isTimeUp={isTimeUp}
+                />
+              </>
+            )}
+          </div>
+
+          {/* If Submitted: Display Results View */}
+          {submissionResult ? (
+            <SubmissionResultsView
+              submissionData={submissionResult}
+              onRestart={handleRestart}
+              onExplore={handleExplore}
+            />
+          ) : (
+            <>
+              {/* Question & Answers Card */}
+              {currentQuestion && (
+                <QuestionCard
+                  question={currentQuestion}
+                  selectedAnswerId={selectedAnswers[currentQuestion.id]}
+                  onSelectAnswer={handleSelectAnswer}
+                />
+              )}
+
+              {/* Navigation Action Buttons Bar */}
+              <div className="flex items-center gap-4 pt-4 border-t border-border/60">
+                {/* Previous Button */}
+                <button
+                  type="button"
+                  onClick={handlePrevious}
+                  disabled={isFirstQuestion || isSubmitting}
+                  className={`flex-1 sm:flex-initial sm:w-48 py-3 px-6 rounded-lg font-medium text-xs sm:text-sm flex items-center justify-center gap-1.5 transition-colors select-none ${
+                    isFirstQuestion || isSubmitting
+                      ? "bg-[#e5e7eb] text-gray-400 cursor-not-allowed"
+                      : "bg-slate-100 hover:bg-slate-200 text-foreground cursor-pointer"
+                  }`}
+                >
+                  <ChevronLeft className="size-4" />
+                  <span>Previous</span>
+                </button>
+
+                {/* Next / Submit Button */}
+                <button
+                  type="button"
+                  onClick={handleNext}
+                  disabled={isSubmitting}
+                  className="flex-1 py-3 px-6 rounded-lg bg-primary hover:bg-primary-hover disabled:opacity-70 text-white font-medium text-xs sm:text-sm flex items-center justify-center gap-1.5 shadow-xs transition-colors cursor-pointer select-none"
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="size-4 animate-spin" />
+                      <span>Submitting...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>{isLastQuestion ? "Submit" : "Next"}</span>
+                      {!isLastQuestion && <ChevronRight className="size-4" />}
+                    </>
+                  )}
+                </button>
               </div>
-
-              {/* Vertical Divider */}
-              <div className="h-8 w-px bg-border/80 hidden sm:block" />
-
-              {/* Circular Countdown Timer */}
-              <ExamTimer
-                formattedTime={formattedTime}
-                progressPercentage={progressPercentage}
-                isTimeUp={isTimeUp}
-              />
-            </div>
-          </div>
-
-          {/* Question & Answers Card */}
-          <QuestionCard
-            question={currentQuestion}
-            selectedAnswerId={selectedAnswers[currentQuestion.id]}
-            onSelectAnswer={handleSelectAnswer}
-          />
-
-          {/* Navigation Action Buttons Bar */}
-          <div className="flex items-center gap-4 pt-4 border-t border-border/60">
-            {/* Previous Button */}
-            <button
-              type="button"
-              onClick={handlePrevious}
-              disabled={isFirstQuestion}
-              className={`flex-1 sm:flex-initial sm:w-48 py-3 px-6 rounded-lg font-medium text-xs sm:text-sm flex items-center justify-center gap-1.5 transition-colors select-none ${
-                isFirstQuestion
-                  ? "bg-[#e5e7eb] text-gray-400 cursor-not-allowed"
-                  : "bg-slate-100 hover:bg-slate-200 text-foreground cursor-pointer"
-              }`}
-            >
-              <ChevronLeft className="size-4" />
-              <span>Previous</span>
-            </button>
-
-            {/* Next / Submit Button */}
-            <button
-              type="button"
-              onClick={handleNext}
-              className="flex-1 py-3 px-6 rounded-lg bg-primary hover:bg-primary-hover text-white font-medium text-xs sm:text-sm flex items-center justify-center gap-1.5 shadow-xs transition-colors cursor-pointer select-none"
-            >
-              <span>{isLastQuestion ? "Submit" : "Next"}</span>
-              {!isLastQuestion && <ChevronRight className="size-4" />}
-            </button>
-          </div>
+            </>
+          )}
         </div>
       )}
 
       {/* Empty State */}
-      {!isLoading && questions.length === 0 && (
+      {!isLoading && questions.length === 0 && !submissionResult && (
         <div className="rounded-2xl border border-dashed border-border p-12 text-center bg-white space-y-3">
           <div className="mx-auto size-12 rounded-full bg-accent flex items-center justify-center text-primary">
             <HelpCircle className="size-6" />
