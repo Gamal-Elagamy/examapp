@@ -26,7 +26,15 @@ export async function GET() {
   }
 }
 
+export async function PATCH(request: NextRequest) {
+  return handleUpdate(request);
+}
+
 export async function PUT(request: NextRequest) {
+  return handleUpdate(request);
+}
+
+async function handleUpdate(request: NextRequest) {
   const session = await auth();
   if (!session?.token) {
     return NextResponse.json(
@@ -42,8 +50,8 @@ export async function PUT(request: NextRequest) {
   } catch (error) {
     const message = error instanceof Error ? error.message : "Failed to update profile";
     return NextResponse.json(
-      { status: false, code: 500, message },
-      { status: 500 },
+      { status: false, code: 400, message },
+      { status: 400 },
     );
   }
 }

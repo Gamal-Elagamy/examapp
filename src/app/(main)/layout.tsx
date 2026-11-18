@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { auth } from "@/auth";
 import { AppSidebar } from "@/shared/layout/app-sidebar";
+import { getUserProfile } from "@/features/account/lib/apis/account.api";
 
 interface MainLayoutProps {
   children: ReactNode;
@@ -8,13 +9,25 @@ interface MainLayoutProps {
 
 export default async function MainLayout({ children }: MainLayoutProps) {
   const session = await auth();
+  let user = session?.user || null;
+
+  if (session?.token) {
+    try {
+      const res = await getUserProfile(session.token);
+      if (res?.status && res.payload?.user) {
+        user = res.payload.user;
+      }
+    } catch {
+      // Fallback to session user
+    }
+  }
 
   return (
     <div className="min-h-screen flex bg-white">
       {/* Fixed Left Sidebar (Desktop) - background: rgba(239, 246, 255, 1) */}
       <div className="hidden md:block w-64 shrink-0 bg-brand-blue-50">
         <div className="fixed inset-y-0 inset-s-0 w-64 z-30 bg-brand-blue-50">
-          <AppSidebar user={session?.user || null} />
+          <AppSidebar user={user} />
         </div>
       </div>
 

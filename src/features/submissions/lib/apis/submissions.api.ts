@@ -1,4 +1,5 @@
 import { env } from "@/shared/lib/constants/env.constant";
+import { extractErrorMessage } from "@/shared/lib/utils";
 import type { IApiResponse } from "@/shared/lib/types/api";
 import type {
   ICreateSubmissionInput,
@@ -26,10 +27,10 @@ export async function createSubmission(
     body: JSON.stringify(input),
   });
 
-  const payload: IApiResponse<ISubmissionDetailsPayload> = await res.json();
+  const payload: IApiResponse<ISubmissionDetailsPayload> = await res.json().catch(() => null);
 
-  if (!res.ok || !payload.status) {
-    throw new Error(payload.message || "Failed to submit exam");
+  if (!res.ok || !payload || !payload.status) {
+    throw new Error(extractErrorMessage(payload, "Failed to submit exam"));
   }
 
   return payload;
@@ -47,10 +48,10 @@ export async function getClientCreateSubmission(
     body: JSON.stringify(input),
   });
 
-  const data: IApiResponse<ISubmissionDetailsPayload> = await res.json();
+  const data: IApiResponse<ISubmissionDetailsPayload> = await res.json().catch(() => null);
 
-  if (!res.ok || !data.status || !data.payload) {
-    throw new Error(data.message || "Failed to submit exam");
+  if (!res.ok || !data || !data.status || !data.payload) {
+    throw new Error(extractErrorMessage(data, "Failed to submit exam"));
   }
 
   return data.payload;
@@ -111,10 +112,10 @@ export async function getSubmissionById(
     cache: "no-store",
   });
 
-  const payload: IApiResponse<ISubmissionDetailsPayload> = await res.json();
+  const payload: IApiResponse<ISubmissionDetailsPayload> = await res.json().catch(() => null);
 
-  if (!res.ok || !payload.status) {
-    throw new Error(payload.message || "Failed to fetch submission analytics");
+  if (!res.ok || !payload || !payload.status) {
+    throw new Error(extractErrorMessage(payload, "Failed to fetch submission analytics"));
   }
 
   return payload;
@@ -125,10 +126,10 @@ export async function getClientSubmissionById(
 ): Promise<ISubmissionDetailsPayload> {
   const url = `/api/submissions/${id}`;
   const res = await fetch(url);
-  const data: IApiResponse<ISubmissionDetailsPayload> = await res.json();
+  const data: IApiResponse<ISubmissionDetailsPayload> = await res.json().catch(() => null);
 
-  if (!res.ok || !data.status || !data.payload) {
-    throw new Error(data.message || "Failed to fetch submission analytics");
+  if (!res.ok || !data || !data.status || !data.payload) {
+    throw new Error(extractErrorMessage(data, "Failed to fetch submission analytics"));
   }
 
   return data.payload;

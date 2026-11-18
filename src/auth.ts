@@ -41,9 +41,24 @@ export const authOptions: NextAuthOptions = {
             throw new Error(data.message || "Login failed");
           }
 
+          let currentUser = data.payload.user;
+          try {
+            const profileRes = await fetch(`${env.NEXT_PUBLIC_API_URL}/users/profile`, {
+              headers: { Authorization: `Bearer ${data.payload.token}` },
+            });
+            const profileData = await profileRes.json().catch(() => null);
+            if (profileData?.status && profileData.payload?.user) {
+              currentUser = profileData.payload.user;
+            } else if (profileData?.user) {
+              currentUser = profileData.user;
+            }
+          } catch {
+            // Fallback to login payload user
+          }
+
           return {
-            id: data.payload.user.id,
-            user: data.payload.user,
+            id: currentUser.id,
+            user: currentUser,
             token: data.payload.token,
           };
         } catch (error) {
@@ -56,10 +71,13 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
-    jwt({ token, user }) {
+    jwt({ token, user, trigger, session }) {
       if (user) {
         token.user = user.user;
         token.token = user.token;
+      }
+      if (trigger === "update" && session?.user) {
+        token.user = { ...(token.user as object), ...session.user };
       }
       return token;
     },

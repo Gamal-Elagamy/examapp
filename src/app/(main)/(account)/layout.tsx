@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ChevronLeft, User } from "lucide-react";
 import { ROUTES } from "@/routes";
 import { AccountSubNav } from "@/features/account/components/account-sub-nav";
+import { AccountBreadcrumb } from "@/features/account/components/account-breadcrumb";
 
 interface AccountLayoutProps {
   children: ReactNode;
@@ -12,9 +13,7 @@ export default function AccountLayout({ children }: AccountLayoutProps) {
   return (
     <div className="space-y-6 max-w-6xl mx-auto w-full">
       {/* Top Breadcrumb Navigation */}
-      <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-xs text-muted-foreground font-mono">
-        <span className="text-foreground font-medium">Account</span>
-      </nav>
+      <AccountBreadcrumb />
 
       {/* Header Row: Back Button & Blue Banner */}
       <div className="flex items-center gap-3">

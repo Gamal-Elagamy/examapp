@@ -1,4 +1,5 @@
 import { env } from "@/shared/lib/constants/env.constant";
+import { extractErrorMessage } from "@/shared/lib/utils";
 import type { IApiResponse } from "@/shared/lib/types/api";
 import type { IDiplomasPayload, IDiplomaDetailsPayload } from "@/shared/lib/types/diploma";
 
@@ -40,10 +41,10 @@ export async function getDiplomas(
     cache: "no-store",
   });
 
-  const payload: IApiResponse<IDiplomasPayload> = await res.json();
+  const payload: IApiResponse<IDiplomasPayload> = await res.json().catch(() => null);
 
-  if (!res.ok || !payload.status) {
-    throw new Error(payload.message || "Failed to fetch diplomas");
+  if (!res.ok || !payload || !payload.status) {
+    throw new Error(extractErrorMessage(payload, "Failed to fetch diplomas"));
   }
 
   return payload;
@@ -64,10 +65,10 @@ export async function getClientDiplomas(
   const url = `/api/diplomas${queryString ? `?${queryString}` : ""}`;
 
   const res = await fetch(url);
-  const data: IApiResponse<IDiplomasPayload> = await res.json();
+  const data: IApiResponse<IDiplomasPayload> = await res.json().catch(() => null);
 
-  if (!res.ok || !data.status || !data.payload) {
-    throw new Error(data.message || "Failed to fetch diplomas");
+  if (!res.ok || !data || !data.status || !data.payload) {
+    throw new Error(extractErrorMessage(data, "Failed to fetch diplomas"));
   }
 
   return data.payload;
@@ -92,10 +93,10 @@ export async function getDiplomaById(
     cache: "no-store",
   });
 
-  const payload: IApiResponse<IDiplomaDetailsPayload> = await res.json();
+  const payload: IApiResponse<IDiplomaDetailsPayload> = await res.json().catch(() => null);
 
-  if (!res.ok || !payload.status) {
-    throw new Error(payload.message || "Failed to fetch diploma details");
+  if (!res.ok || !payload || !payload.status) {
+    throw new Error(extractErrorMessage(payload, "Failed to fetch diploma details"));
   }
 
   return payload;
@@ -106,10 +107,10 @@ export async function getClientDiplomaById(
 ): Promise<IDiplomaDetailsPayload> {
   const url = `/api/diplomas/${id}`;
   const res = await fetch(url);
-  const data: IApiResponse<IDiplomaDetailsPayload> = await res.json();
+  const data: IApiResponse<IDiplomaDetailsPayload> = await res.json().catch(() => null);
 
-  if (!res.ok || !data.status || !data.payload) {
-    throw new Error(data.message || "Failed to fetch diploma details");
+  if (!res.ok || !data || !data.status || !data.payload) {
+    throw new Error(extractErrorMessage(data, "Failed to fetch diploma details"));
   }
 
   return data.payload;

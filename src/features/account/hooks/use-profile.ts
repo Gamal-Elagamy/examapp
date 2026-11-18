@@ -17,6 +17,8 @@ export function useProfile(options?: UseProfileOptions) {
       return data.user;
     },
     initialData: options?.initialData,
-    staleTime: 1000 * 60 * 5, // 5 minutes
+    initialDataUpdatedAt: 0,
+    staleTime: 1000 * 30, // 30 seconds
+    refetchOnMount: true,
   });
 }

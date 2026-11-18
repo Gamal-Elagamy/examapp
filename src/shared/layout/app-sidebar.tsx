@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { ROUTES } from "@/routes";
 import { USER_ROLES } from "@/shared/lib/constants/api.constant";
+import { useProfile } from "@/features/account/hooks/use-profile";
 import logoImg from "@/assets/logo.png";
 import type { IUser } from "@/shared/lib/types/user";
 
@@ -22,7 +23,11 @@ interface AppSidebarProps {
   user?: IUser | null;
 }
 
-export function AppSidebar({ user }: AppSidebarProps) {
+export function AppSidebar({ user: initialUser }: AppSidebarProps) {
+  const { data: user = initialUser } = useProfile({
+    initialData: initialUser || undefined,
+  });
+
   const pathname = usePathname();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement | null>(null);
@@ -63,7 +68,8 @@ export function AppSidebar({ user }: AppSidebarProps) {
               width={140}
               height={36}
               priority
-              className="h-9 w-auto object-contain"
+              style={{ width: "auto" }}
+              className="h-9 object-contain"
             />
           </Link>
           <div className="flex items-center gap-2 pt-1 text-xs font-semibold text-foreground/80">

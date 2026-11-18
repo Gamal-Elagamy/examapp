@@ -1,4 +1,5 @@
 import { env } from "@/shared/lib/constants/env.constant";
+import { extractErrorMessage } from "@/shared/lib/utils";
 import type { IUser } from "@/shared/lib/types/user";
 
 export interface SendEmailVerificationPayload {
@@ -69,9 +70,9 @@ export async function sendEmailVerificationApi(
     body: JSON.stringify(payload),
   });
 
-  const data = await response.json();
+  const data = await response.json().catch(() => null);
   if (!response.ok) {
-    throw new Error(data.message || "Failed to send verification code");
+    throw new Error(extractErrorMessage(data, "Failed to send verification code"));
   }
 
   return data;
@@ -86,9 +87,9 @@ export async function confirmEmailVerificationApi(
     body: JSON.stringify(payload),
   });
 
-  const data = await response.json();
+  const data = await response.json().catch(() => null);
   if (!response.ok) {
-    throw new Error(data.message || "Invalid or expired verification code");
+    throw new Error(extractErrorMessage(data, "Invalid or expired verification code"));
   }
 
   return data;
@@ -103,9 +104,9 @@ export async function registerApi(
     body: JSON.stringify(payload),
   });
 
-  const data = await response.json();
+  const data = await response.json().catch(() => null);
   if (!response.ok) {
-    throw new Error(data.message || "Registration failed");
+    throw new Error(extractErrorMessage(data, "Registration failed"));
   }
 
   return data;
@@ -120,18 +121,9 @@ export async function forgotPasswordApi(
     body: JSON.stringify(payload),
   });
 
-  const data = await response.json();
+  const data = await response.json().catch(() => null);
   if (!response.ok) {
-    let errorMsg = data.message || "Failed to send password reset email";
-    if (data.errors && Array.isArray(data.errors) && data.errors.length > 0) {
-      const firstError = data.errors[0];
-      if (firstError.messages && Array.isArray(firstError.messages)) {
-        errorMsg = firstError.messages.join(", ");
-      } else if (firstError.message) {
-        errorMsg = firstError.message;
-      }
-    }
-    throw new Error(errorMsg);
+    throw new Error(extractErrorMessage(data, "Failed to send password reset email"));
   }
 
   return data;
@@ -146,18 +138,9 @@ export async function resetPasswordApi(
     body: JSON.stringify(payload),
   });
 
-  const data = await response.json();
+  const data = await response.json().catch(() => null);
   if (!response.ok) {
-    let errorMsg = data.message || "Failed to reset password";
-    if (data.errors && Array.isArray(data.errors) && data.errors.length > 0) {
-      const firstError = data.errors[0];
-      if (firstError.messages && Array.isArray(firstError.messages)) {
-        errorMsg = firstError.messages.join(", ");
-      } else if (firstError.message) {
-        errorMsg = firstError.message;
-      }
-    }
-    throw new Error(errorMsg);
+    throw new Error(extractErrorMessage(data, "Failed to reset password"));
   }
 
   return data;

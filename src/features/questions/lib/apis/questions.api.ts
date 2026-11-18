@@ -1,4 +1,5 @@
 import { env } from "@/shared/lib/constants/env.constant";
+import { extractErrorMessage } from "@/shared/lib/utils";
 import type { IApiResponse } from "@/shared/lib/types/api";
 import type {
   IExamQuestionsPayload,
@@ -34,10 +35,10 @@ export async function getExamQuestions(
     cache: "no-store",
   });
 
-  const payload: IApiResponse<IExamQuestionsPayload> = await res.json();
+  const payload: IApiResponse<IExamQuestionsPayload> = await res.json().catch(() => null);
 
-  if (!res.ok || !payload.status) {
-    throw new Error(payload.message || "Failed to fetch exam questions");
+  if (!res.ok || !payload || !payload.status) {
+    throw new Error(extractErrorMessage(payload, "Failed to fetch exam questions"));
   }
 
   return payload;
@@ -57,10 +58,10 @@ export async function getClientExamQuestions(
   const url = `/api/questions/exam/${examId}${queryString ? `?${queryString}` : ""}`;
 
   const res = await fetch(url);
-  const data: IApiResponse<IExamQuestionsPayload> = await res.json();
+  const data: IApiResponse<IExamQuestionsPayload> = await res.json().catch(() => null);
 
-  if (!res.ok || !data.status || !data.payload) {
-    throw new Error(data.message || "Failed to fetch exam questions");
+  if (!res.ok || !data || !data.status || !data.payload) {
+    throw new Error(extractErrorMessage(data, "Failed to fetch exam questions"));
   }
 
   return data.payload;
@@ -85,10 +86,10 @@ export async function getExamById(
     cache: "no-store",
   });
 
-  const payload: IApiResponse<IExamDetailsPayload> = await res.json();
+  const payload: IApiResponse<IExamDetailsPayload> = await res.json().catch(() => null);
 
-  if (!res.ok || !payload.status) {
-    throw new Error(payload.message || "Failed to fetch exam details");
+  if (!res.ok || !payload || !payload.status) {
+    throw new Error(extractErrorMessage(payload, "Failed to fetch exam details"));
   }
 
   return payload;
@@ -99,10 +100,10 @@ export async function getClientExamById(
 ): Promise<IExamDetailsPayload> {
   const url = `/api/exams/${id}`;
   const res = await fetch(url);
-  const data: IApiResponse<IExamDetailsPayload> = await res.json();
+  const data: IApiResponse<IExamDetailsPayload> = await res.json().catch(() => null);
 
-  if (!res.ok || !data.status || !data.payload) {
-    throw new Error(data.message || "Failed to fetch exam details");
+  if (!res.ok || !data || !data.status || !data.payload) {
+    throw new Error(extractErrorMessage(data, "Failed to fetch exam details"));
   }
 
   return data.payload;
