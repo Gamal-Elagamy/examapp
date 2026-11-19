@@ -278,7 +278,7 @@ export function ChangeEmailDialog({
             </p>
 
             {/* 6 OTP Input Boxes */}
-            <div className="flex items-center justify-between gap-2 sm:gap-3 py-1">
+            <div className="flex items-center justify-between gap-1.5 sm:gap-2.5 md:gap-3 py-1">
               {digits.map((digit, idx) => (
                 <input
                   key={idx}
@@ -292,7 +292,7 @@ export function ChangeEmailDialog({
                   onChange={(e) => handleDigitChange(idx, e.target.value)}
                   onKeyDown={(e) => handleDigitKeyDown(idx, e)}
                   onPaste={handlePaste}
-                  className={`size-11 sm:size-12 text-center text-lg sm:text-xl font-bold font-mono rounded-lg border transition-all focus:outline-hidden ${
+                  className={`size-9 sm:size-11 md:size-12 text-center text-base sm:text-lg md:text-xl font-bold font-mono rounded-lg border transition-all focus:outline-hidden ${
                     digit
                       ? "border-primary text-foreground bg-primary/5"
                       : "border-border text-foreground bg-white focus:border-primary focus:ring-2 focus:ring-primary/20"

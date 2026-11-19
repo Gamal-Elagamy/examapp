@@ -191,12 +191,12 @@ export function ExamQuestionsView({
         <span>/</span>
         <Link
           href={diplomaLink}
-          className="hover:text-primary transition-colors cursor-pointer truncate max-w-[200px]"
+          className="hover:text-primary transition-colors cursor-pointer truncate max-w-50"
         >
           {diplomaTitle}
         </Link>
         <span>/</span>
-        <span className="text-primary font-semibold truncate max-w-[200px]">
+        <span className="text-primary font-semibold truncate max-w-50">
           {examTitle}
         </span>
       </nav>

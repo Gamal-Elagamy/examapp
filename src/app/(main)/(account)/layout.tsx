@@ -33,15 +33,15 @@ export default function AccountLayout({ children }: AccountLayoutProps) {
         </div>
       </div>
 
-      {/* Account Inner Layout: Left Side (~1/4 width) & Right Side (~3/4 width) */}
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start pt-2">
-        {/* Left Side Sub-Layout (Takes ~1/4 of the width) */}
-        <aside className="md:col-span-4 lg:col-span-3 h-full min-h-[460px]">
+      {/* Account Inner Layout: Left Side (~1/4 width on md+) & Right Side (~3/4 width on md+) */}
+      <div className="grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-8 items-start pt-2">
+        {/* Left Side Sub-Layout */}
+        <aside className="md:col-span-4 lg:col-span-3 md:h-full md:min-h-115">
           <AccountSubNav />
         </aside>
 
-        {/* Right Side Content (Takes ~3/4 of the width) */}
-        <main className="md:col-span-8 lg:col-span-9 min-h-[460px]">
+        {/* Right Side Content */}
+        <main className="md:col-span-8 lg:col-span-9 md:min-h-115">
           {children}
         </main>
       </div>

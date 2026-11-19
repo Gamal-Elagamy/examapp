@@ -13,38 +13,41 @@ export function AccountSubNav() {
   const isChangePasswordActive = pathname === ROUTES.CHANGE_PASSWORD;
 
   return (
-    <div className="flex flex-col justify-between h-full min-h-[440px] sm:min-h-[480px] select-none">
-      {/* Top Navigation Links */}
-      <nav className="space-y-2" aria-label="Account Sub Navigation">
+    <div className="flex flex-col md:justify-between h-auto md:h-full md:min-h-110 select-none">
+      {/* Navigation Links: Segmented Tabs on Mobile/Tablet, Vertical Menu on Desktop */}
+      <nav
+        className="grid grid-cols-2 md:grid-cols-1 gap-2 p-1 bg-slate-100/90 md:bg-transparent rounded-xl md:rounded-none md:space-y-2"
+        aria-label="Account Sub Navigation"
+      >
         {/* Profile Link */}
         <Link
           href={ROUTES.PROFILE}
-          className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all ${
+          className={`flex items-center justify-center md:justify-start gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg text-xs sm:text-sm font-medium transition-all ${
             isProfileActive
-              ? "bg-primary/10 text-primary font-semibold shadow-2xs"
-              : "text-muted-foreground hover:text-foreground hover:bg-slate-50"
+              ? "bg-white md:bg-primary/10 text-primary font-semibold shadow-xs md:shadow-2xs"
+              : "text-muted-foreground hover:text-foreground hover:bg-white/60 md:hover:bg-slate-50"
           }`}
         >
-          <User className="size-4.5 text-primary" />
+          <User className="size-4 sm:size-4.5 text-primary" />
           <span>Profile</span>
         </Link>
 
         {/* Change Password Link */}
         <Link
           href={ROUTES.CHANGE_PASSWORD}
-          className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all ${
+          className={`flex items-center justify-center md:justify-start gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg text-xs sm:text-sm font-medium transition-all ${
             isChangePasswordActive
-              ? "bg-primary/10 text-primary font-semibold shadow-2xs"
-              : "text-muted-foreground hover:text-foreground hover:bg-slate-50"
+              ? "bg-white md:bg-primary/10 text-primary font-semibold shadow-xs md:shadow-2xs"
+              : "text-muted-foreground hover:text-foreground hover:bg-white/60 md:hover:bg-slate-50"
           }`}
         >
-          <Lock className="size-4.5" />
+          <Lock className="size-4 sm:size-4.5" />
           <span>Change Password</span>
         </Link>
       </nav>
 
-      {/* Bottom Logout Action (Positioned at bottom of the sub-layout) */}
-      <div className="pt-8">
+      {/* Bottom Logout Action: Desktop Only (Mobile has it in AppHeader) */}
+      <div className="hidden md:block pt-8">
         <button
           type="button"
           onClick={() => signOut({ callbackUrl: ROUTES.AUTH.LOGIN })}

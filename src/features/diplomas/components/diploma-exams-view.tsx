@@ -33,7 +33,7 @@ export function DiplomaExamsView({ diplomaId, initialDiploma }: DiplomaExamsView
           Diplomas
         </Link>
         <span>/</span>
-        <span className="truncate max-w-[200px] text-foreground font-medium">{title}</span>
+        <span className="truncate max-w-50 text-foreground font-medium">{title}</span>
         <span>/</span>
         <span className="text-primary font-semibold">Exams</span>
       </nav>
