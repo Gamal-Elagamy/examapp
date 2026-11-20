@@ -28,7 +28,7 @@ function ProfileLoadingSkeleton() {
   );
 }
 
-export default async function ProfilePage() {
+export default async function UserProfilePage() {
   const session = await auth();
   let initialUser = session?.user;
 

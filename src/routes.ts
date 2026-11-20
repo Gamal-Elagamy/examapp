@@ -16,6 +16,12 @@ export const ROUTES = {
   PROFILE: "/profile",
   CHANGE_PASSWORD: "/change-password",
   ADMIN: {
-    ROOT: "/admin",
+    ROOT: "/dashboard",
+    DIPLOMAS: "/dashboard",
+    DIPLOMA_DETAILS: (id: string) => `/dashboard/diplomas/${id}`,
+    EXAMS: "/exams",
+    AUDIT_LOG: "/dashboard/audit-log",
+    PROFILE: "/profile",
+    CHANGE_PASSWORD: "/change-password",
   },
 } as const;

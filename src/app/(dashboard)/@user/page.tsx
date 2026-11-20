@@ -6,11 +6,11 @@ export const metadata: Metadata = {
   description: "Browse available diplomas and certifications",
 };
 
-interface HomePageProps {
+interface UserHomePageProps {
   searchParams: Promise<{ search?: string }>;
 }
 
-export default async function HomePage({ searchParams }: HomePageProps) {
+export default async function UserHomePage({ searchParams }: UserHomePageProps) {
   const resolvedParams = await searchParams;
   const search = resolvedParams.search;
 

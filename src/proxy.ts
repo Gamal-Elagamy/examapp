@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
 import { ROUTES } from "@/routes";
 
-const protectedPaths = ["/exams", "/questions", "/profile", "/change-password", "/admin"];
+const protectedPaths = ["/exams", "/questions", "/profile", "/change-password", "/dashboard", "/admin"];
 const authPaths = ["/login", "/register", "/forget-password", "/forgot-password", "/reset-password"];
 
 export async function proxy(request: NextRequest) {
@@ -24,9 +24,30 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  // If logged in and trying to access auth pages, redirect to home
+  // Restrict /dashboard and /admin routes strictly to ADMIN and SUPER_ADMIN
+  if ((pathname.startsWith("/dashboard") || pathname.startsWith("/admin")) && token) {
+    const userRole = (token.user as { role?: string } | undefined)?.role;
+    if (userRole !== "ADMIN" && userRole !== "SUPER_ADMIN") {
+      return NextResponse.redirect(new URL(ROUTES.HOME, request.url));
+    }
+  }
+
+  // If logged in and trying to access auth pages, redirect based on role
   if (isAuthPage && token) {
-    return NextResponse.redirect(new URL(ROUTES.HOME, request.url));
+    const userRole = (token.user as { role?: string } | undefined)?.role;
+    const target =
+      userRole === "ADMIN" || userRole === "SUPER_ADMIN"
+        ? ROUTES.ADMIN.DIPLOMAS
+        : ROUTES.HOME;
+    return NextResponse.redirect(new URL(target, request.url));
+  }
+
+  // If an ADMIN accesses root "/", immediately redirect them to Admin Diplomas dashboard
+  if (isHome && token) {
+    const userRole = (token.user as { role?: string } | undefined)?.role;
+    if (userRole === "ADMIN" || userRole === "SUPER_ADMIN") {
+      return NextResponse.redirect(new URL(ROUTES.ADMIN.DIPLOMAS, request.url));
+    }
   }
 
   return NextResponse.next();
@@ -39,6 +60,7 @@ export const config = {
     "/questions/:path*",
     "/profile/:path*",
     "/change-password/:path*",
+    "/dashboard/:path*",
     "/admin/:path*",
     "/login",
     "/register",

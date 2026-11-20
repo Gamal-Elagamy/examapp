@@ -6,11 +6,19 @@ import { signOut } from "next-auth/react";
 import { User, Lock, LogOut } from "lucide-react";
 import { ROUTES } from "@/routes";
 
-export function AccountSubNav() {
+interface AccountSubNavProps {
+  basePath?: "user" | "admin";
+}
+
+export function AccountSubNav({ basePath = "user" }: AccountSubNavProps) {
   const pathname = usePathname();
 
-  const isProfileActive = pathname === ROUTES.PROFILE;
-  const isChangePasswordActive = pathname === ROUTES.CHANGE_PASSWORD;
+  const profileHref = basePath === "admin" ? ROUTES.ADMIN.PROFILE : ROUTES.PROFILE;
+  const changePasswordHref =
+    basePath === "admin" ? ROUTES.ADMIN.CHANGE_PASSWORD : ROUTES.CHANGE_PASSWORD;
+
+  const isProfileActive = pathname === profileHref;
+  const isChangePasswordActive = pathname === changePasswordHref;
 
   return (
     <div className="flex flex-col md:justify-between h-auto md:h-full md:min-h-110 select-none">
@@ -21,7 +29,7 @@ export function AccountSubNav() {
       >
         {/* Profile Link */}
         <Link
-          href={ROUTES.PROFILE}
+          href={profileHref}
           className={`flex items-center justify-center md:justify-start gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg text-xs sm:text-sm font-medium transition-all ${
             isProfileActive
               ? "bg-white md:bg-primary/10 text-primary font-semibold shadow-xs md:shadow-2xs"
@@ -34,7 +42,7 @@ export function AccountSubNav() {
 
         {/* Change Password Link */}
         <Link
-          href={ROUTES.CHANGE_PASSWORD}
+          href={changePasswordHref}
           className={`flex items-center justify-center md:justify-start gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg text-xs sm:text-sm font-medium transition-all ${
             isChangePasswordActive
               ? "bg-white md:bg-primary/10 text-primary font-semibold shadow-xs md:shadow-2xs"

@@ -17,10 +17,13 @@ export async function GET(request: NextRequest) {
   const search = searchParams.get("search") || undefined;
   const sortBy = searchParams.get("sortBy") || undefined;
   const sortOrder = (searchParams.get("sortOrder") as "asc" | "desc") || undefined;
+  const immutableParam = searchParams.get("immutable");
+  const immutable =
+    immutableParam === "true" ? true : immutableParam === "false" ? false : undefined;
 
   try {
     const payload = await getDiplomas(
-      { page, limit, search, sortBy, sortOrder },
+      { page, limit, search, sortBy, sortOrder, immutable },
       session.token,
     );
     return NextResponse.json(payload);

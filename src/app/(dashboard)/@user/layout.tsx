@@ -4,11 +4,11 @@ import { AppSidebar } from "@/shared/layout/app-sidebar";
 import { AppHeader } from "@/shared/layout/app-header";
 import { getUserProfile } from "@/features/account/lib/apis/account.api";
 
-interface MainLayoutProps {
+interface UserSlotLayoutProps {
   children: ReactNode;
 }
 
-export default async function MainLayout({ children }: MainLayoutProps) {
+export default async function UserSlotLayout({ children }: UserSlotLayoutProps) {
   const session = await auth();
   let user = session?.user || null;
 

@@ -4,16 +4,21 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ROUTES } from "@/routes";
 
-export function AccountBreadcrumb() {
+interface AccountBreadcrumbProps {
+  basePath?: "user" | "admin";
+}
+
+export function AccountBreadcrumb({ basePath = "user" }: AccountBreadcrumbProps) {
   const pathname = usePathname();
   const isChangePassword = pathname?.includes("/change-password");
+  const accountHref = basePath === "admin" ? ROUTES.ADMIN.PROFILE : ROUTES.PROFILE;
 
   return (
     <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-xs text-muted-foreground font-mono">
       {isChangePassword ? (
         <>
           <Link
-            href={ROUTES.PROFILE}
+            href={accountHref}
             className="hover:text-foreground transition-colors"
           >
             Account
