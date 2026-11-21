@@ -13,9 +13,20 @@ export interface IExam {
   duration: number;
   numberOfQuestions?: number;
   diplomaId?: string;
+  diploma?: IExamDiploma | string;
   immutable?: boolean;
   createdAt?: string;
   updatedAt?: string;
+}
+
+export interface IExamsPayload {
+  data: IExam[];
+  metadata: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
 }
 
 export interface IExamDetails extends IExam {

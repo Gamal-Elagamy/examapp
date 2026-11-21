@@ -82,7 +82,7 @@ export function AdminHeader({ user: initialUser }: AdminHeaderProps) {
   const isDiplomasActive =
     pathname === ROUTES.ADMIN.ROOT ||
     pathname.startsWith("/admin/diplomas");
-  const isExamsActive = pathname.startsWith("/admin/exams") || pathname.startsWith("/exams");
+  const isExamsActive = pathname.startsWith("/admin/exams");
   const isAccountActive =
     pathname.startsWith("/admin/profile") ||
     pathname.startsWith("/admin/change-password") ||
@@ -302,6 +302,19 @@ export function AdminHeader({ user: initialUser }: AdminHeaderProps) {
                   <div className="flex items-center gap-3">
                     <ListChecks className="size-4.5" />
                     <span>Audit Log</span>
+                  </div>
+                  <ChevronRight className="size-4 text-slate-500" />
+                </Link>
+
+                {/* Application Switcher Link in Drawer */}
+                <Link
+                  href={ROUTES.HOME}
+                  onClick={() => setIsDrawerOpen(false)}
+                  className="flex items-center justify-between px-3.5 py-2.5 rounded-lg text-sm font-medium transition-colors text-slate-400 hover:text-white hover:bg-[#24303F]/60"
+                >
+                  <div className="flex items-center gap-3">
+                    <LayoutGrid className="size-4.5" />
+                    <span>Application</span>
                   </div>
                   <ChevronRight className="size-4 text-slate-500" />
                 </Link>

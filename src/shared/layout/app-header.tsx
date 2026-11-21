@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { signOut } from "next-auth/react";
+import { useSession, signOut } from "next-auth/react";
 import {
   Menu,
   X,
@@ -26,6 +26,7 @@ interface AppHeaderProps {
 }
 
 export function AppHeader({ user: initialUser }: AppHeaderProps) {
+  const { data: session } = useSession();
   const { data: user = initialUser } = useProfile({
     initialData: initialUser || undefined,
   });
@@ -78,8 +79,9 @@ export function AppHeader({ user: initialUser }: AppHeaderProps) {
     };
   }, [isDrawerOpen]);
 
+  const role = user?.role || (session?.user as IUser | undefined)?.role;
   const isAdmin =
-    user?.role === USER_ROLES.ADMIN || user?.role === USER_ROLES.SUPER_ADMIN;
+    role === USER_ROLES.ADMIN || role === USER_ROLES.SUPER_ADMIN;
 
   const isDiplomasActive =
     pathname === ROUTES.HOME ||
@@ -179,7 +181,7 @@ export function AppHeader({ user: initialUser }: AppHeaderProps) {
                     className="flex items-center gap-2.5 w-full px-3 py-2 rounded-md hover:bg-accent text-foreground transition-colors font-medium"
                   >
                     <LayoutDashboard className="size-4 text-muted-foreground" />
-                    <span>Admin Dashboard</span>
+                    <span>Dashboard</span>
                   </Link>
                 )}
               </div>
@@ -282,8 +284,8 @@ export function AppHeader({ user: initialUser }: AppHeaderProps) {
                     className="flex items-center justify-between px-3.5 py-2.5 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-white/60 transition-colors"
                   >
                     <div className="flex items-center gap-3">
-                      <LayoutDashboard className="size-4.5" />
-                      <span>Admin Dashboard</span>
+                      <LayoutDashboard className="size-4.5 text-primary" />
+                      <span>Dashboard</span>
                     </div>
                     <ChevronRight className="size-4 text-muted-foreground/60" />
                   </Link>

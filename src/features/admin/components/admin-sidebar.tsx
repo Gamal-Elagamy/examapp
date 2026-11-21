@@ -48,7 +48,7 @@ export function AdminSidebar({ user: initialUser, onNavigate }: AdminSidebarProp
   const isDiplomasActive =
     pathname === ROUTES.ADMIN.ROOT ||
     pathname.startsWith("/admin/diplomas");
-  const isExamsActive = pathname.startsWith("/admin/exams") || pathname.startsWith("/exams");
+  const isExamsActive = pathname.startsWith("/admin/exams");
   const isAccountActive =
     pathname.startsWith("/admin/profile") ||
     pathname.startsWith("/admin/change-password") ||

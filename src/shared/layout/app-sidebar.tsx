@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { signOut } from "next-auth/react";
+import { useSession, signOut } from "next-auth/react";
 import {
   GraduationCap,
   User,
@@ -24,6 +24,7 @@ interface AppSidebarProps {
 }
 
 export function AppSidebar({ user: initialUser }: AppSidebarProps) {
+  const { data: session } = useSession();
   const { data: user = initialUser } = useProfile({
     initialData: initialUser || undefined,
   });
@@ -43,8 +44,9 @@ export function AppSidebar({ user: initialUser }: AppSidebarProps) {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  const role = user?.role || (session?.user as IUser | undefined)?.role;
   const isAdmin =
-    user?.role === USER_ROLES.ADMIN || user?.role === USER_ROLES.SUPER_ADMIN;
+    role === USER_ROLES.ADMIN || role === USER_ROLES.SUPER_ADMIN;
 
   const isDiplomasActive =
     pathname === ROUTES.HOME ||
