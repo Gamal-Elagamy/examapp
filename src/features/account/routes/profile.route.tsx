@@ -1,14 +1,8 @@
-import type { Metadata } from "next";
 import { Suspense } from "react";
 import { auth } from "@/auth";
 import { getUserProfile } from "@/features/account/lib/apis/account.api";
 import { ProfileForm } from "@/features/account/components/profile-form";
 import { Skeleton } from "@/shared/ui/skeleton";
-
-export const metadata: Metadata = {
-  title: "Admin Profile | Elevate Exam App",
-  description: "Manage your admin personal account profile details.",
-};
 
 function ProfileLoadingSkeleton() {
   return (
@@ -28,7 +22,7 @@ function ProfileLoadingSkeleton() {
   );
 }
 
-export default async function AdminProfilePage() {
+export async function ProfileRoute() {
   const session = await auth();
   let initialUser = session?.user;
 

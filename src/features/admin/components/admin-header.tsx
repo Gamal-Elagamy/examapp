@@ -15,6 +15,7 @@ import {
   LogOut,
   Code2,
   ChevronRight,
+  LayoutGrid,
 } from "lucide-react";
 import { ROUTES } from "@/routes";
 import { useProfile } from "@/features/account/hooks/use-profile";
@@ -79,15 +80,16 @@ export function AdminHeader({ user: initialUser }: AdminHeaderProps) {
   }, [isDrawerOpen]);
 
   const isDiplomasActive =
-    pathname === "/" ||
     pathname === ROUTES.ADMIN.ROOT ||
-    pathname.startsWith("/dashboard/diplomas");
-  const isExamsActive = pathname.startsWith("/exams") || pathname.startsWith("/dashboard/exams");
+    pathname.startsWith("/admin/diplomas");
+  const isExamsActive = pathname.startsWith("/admin/exams") || pathname.startsWith("/exams");
   const isAccountActive =
+    pathname.startsWith("/admin/profile") ||
+    pathname.startsWith("/admin/change-password") ||
     pathname.startsWith("/profile") ||
     pathname.startsWith("/change-password") ||
     pathname.startsWith("/account");
-  const isAuditLogActive = pathname.startsWith("/dashboard/audit-log") || pathname.startsWith("/audit-log");
+  const isAuditLogActive = pathname.startsWith("/admin/audit-log") || pathname.startsWith("/audit-log");
 
   const avatarInitial = (user?.firstName?.[0] || user?.username?.[0] || "A").toUpperCase();
   const displayName = user?.firstName
@@ -168,7 +170,7 @@ export function AdminHeader({ user: initialUser }: AdminHeaderProps) {
                   className="flex items-center gap-2.5 w-full px-3 py-2 rounded-md hover:bg-[#313D4A] text-slate-200 transition-colors font-medium"
                 >
                   <User className="size-4 text-slate-400" />
-                  <span>Account Settings</span>
+                  <span>Account</span>
                 </Link>
 
                 <Link
@@ -176,8 +178,8 @@ export function AdminHeader({ user: initialUser }: AdminHeaderProps) {
                   onClick={() => setIsUserMenuOpen(false)}
                   className="flex items-center gap-2.5 w-full px-3 py-2 rounded-md hover:bg-[#313D4A] text-slate-200 transition-colors font-medium"
                 >
-                  <GraduationCap className="size-4 text-slate-400" />
-                  <span>Student View</span>
+                  <LayoutGrid className="size-4 text-slate-400" />
+                  <span>Application</span>
                 </Link>
               </div>
 

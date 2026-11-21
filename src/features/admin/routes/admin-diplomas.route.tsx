@@ -1,27 +1,35 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { ChevronLeft, ChevronRight, Plus, Loader2 } from "lucide-react";
+import { ROUTES } from "@/routes";
 import { getClientDiplomas } from "@/features/diplomas/lib/apis/diplomas.api";
+import { diplomaKeys } from "@/features/diplomas/lib/apis/diplomas.key";
 import { AdminDiplomasFilter } from "../components/admin-diplomas-filter";
 import {
   AdminDiplomasTable,
   type SortOption,
 } from "../components/admin-diplomas-table";
 import { AdminDiplomasTableSkeleton } from "../skeletons/admin-diplomas-table.skeleton";
-import type { IDiplomasPayload } from "@/shared/lib/types/diploma";
+import { DeleteDiplomaDialog } from "../components/delete-diploma-dialog";
+import type { IDiploma, IDiplomasPayload } from "@/shared/lib/types/diploma";
 
 interface AdminDiplomasRouteProps {
   initialData?: IDiplomasPayload;
 }
 
 export function AdminDiplomasRoute({ initialData }: AdminDiplomasRouteProps) {
+  const router = useRouter();
   const [page, setPage] = useState(1);
-  const limit = 20;
+  // 12 items must be displayed per page
+  const limit = 12;
   const [search, setSearch] = useState("");
   const [immutable, setImmutable] = useState<boolean | undefined>(undefined);
   const [sortOption, setSortOption] = useState<SortOption>("title_asc");
+  const [deletingDiploma, setDeletingDiploma] = useState<IDiploma | null>(null);
 
   // Derive sortBy & sortOrder from sortOption
   const getSortParams = (opt: SortOption) => {
@@ -43,11 +51,16 @@ export function AdminDiplomasRoute({ initialData }: AdminDiplomasRouteProps) {
     data,
     isLoading,
     isPlaceholderData,
+    refetch,
   } = useQuery({
-    queryKey: [
-      "admin-diplomas",
-      { page, limit, search, immutable, sortBy, sortOrder },
-    ],
+    queryKey: diplomaKeys.adminList({
+      page,
+      limit,
+      search: search.trim() || undefined,
+      immutable,
+      sortBy,
+      sortOrder,
+    }),
     queryFn: () =>
       getClientDiplomas({
         page,
@@ -64,7 +77,7 @@ export function AdminDiplomasRoute({ initialData }: AdminDiplomasRouteProps) {
   const diplomas = data?.data || [];
   const metadata = data?.metadata || {
     page: 1,
-    limit: 20,
+    limit: 12,
     total: diplomas.length,
     totalPages: 1,
   };
@@ -93,35 +106,36 @@ export function AdminDiplomasRoute({ initialData }: AdminDiplomasRouteProps) {
         Diplomas
       </div>
 
-      {/* Top Action Row: Record Counter & Pagination & Add New Button */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        {/* Left: Record Range & Prev/Next Controls */}
+      {/* Top Action Row: Fixed on Scroll with Exact Joined Controls */}
+      <div className="sticky top-15 lg:top-0 z-30 bg-[#F8FAFC]/95 backdrop-blur-xs py-3 -mt-3 border-b border-border/50 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 transition-all">
+        {/* Left: Record Range & Joined Pagination Control */}
         <div className="flex items-center gap-3 sm:gap-4 select-none">
           <span className="text-xs sm:text-sm font-mono text-muted-foreground">
             {startItem} - {endItem} of {total}
           </span>
 
-          <div className="flex items-center gap-1.5 font-mono text-xs">
+          {/* Joined Segmented Pagination Controls matching the screenshot */}
+          <div className="inline-flex items-center rounded-md border border-border/70 bg-white shadow-2xs overflow-hidden">
             <button
               type="button"
               onClick={() => setPage((p) => Math.max(1, p - 1))}
               disabled={page <= 1 || isPlaceholderData}
               aria-label="Previous page"
-              className="size-8 rounded-lg border border-border/80 bg-slate-100 hover:bg-slate-200 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center text-foreground transition-colors cursor-pointer"
+              className="size-8 bg-slate-100 hover:bg-slate-200 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center text-slate-700 border-e border-border/70 transition-colors cursor-pointer"
             >
               <ChevronLeft className="size-4" />
             </button>
 
-            <span className="px-2 py-1 text-xs text-muted-foreground">
+            <div className="px-3 py-1 text-xs font-mono text-muted-foreground bg-white whitespace-nowrap">
               Page {page} of {totalPages}
-            </span>
+            </div>
 
             <button
               type="button"
               onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
               disabled={page >= totalPages || isPlaceholderData}
               aria-label="Next page"
-              className="size-8 rounded-lg border border-border/80 bg-slate-100 hover:bg-slate-200 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center text-foreground transition-colors cursor-pointer"
+              className="size-8 bg-slate-100 hover:bg-slate-200 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center text-slate-700 border-s border-border/70 transition-colors cursor-pointer"
             >
               <ChevronRight className="size-4" />
             </button>
@@ -129,14 +143,13 @@ export function AdminDiplomasRoute({ initialData }: AdminDiplomasRouteProps) {
         </div>
 
         {/* Right: + Add New Diploma Green Button (matching screenshot) */}
-        <button
-          type="button"
-          onClick={() => alert("Add New Diploma modal/form will be connected in next step.")}
-          className="w-full sm:w-auto px-4 py-2.5 rounded-lg bg-[#00B074] hover:bg-[#009663] text-white font-semibold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-xs transition-colors cursor-pointer select-none"
+        <Link
+          href={ROUTES.ADMIN.CREATE_DIPLOMA}
+          className="w-full sm:w-auto px-4 py-2 rounded-md bg-[#00B074] hover:bg-[#009663] text-white font-semibold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-xs transition-colors cursor-pointer select-none"
         >
           <Plus className="size-4" />
           <span>Add New Diploma</span>
-        </button>
+        </Link>
       </div>
 
       {/* Search & Filters Accordion */}
@@ -165,14 +178,22 @@ export function AdminDiplomasRoute({ initialData }: AdminDiplomasRouteProps) {
               setPage(1);
             }}
             onEdit={(diploma) => {
-              alert(`Edit ${diploma.title} will be connected in next step.`);
+              router.push(ROUTES.ADMIN.EDIT_DIPLOMA(diploma.id));
             }}
             onDelete={(diploma) => {
-              alert(`Delete ${diploma.title} will be connected in next step.`);
+              setDeletingDiploma(diploma);
             }}
           />
         </div>
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <DeleteDiplomaDialog
+        isOpen={!!deletingDiploma}
+        diploma={deletingDiploma}
+        onClose={() => setDeletingDiploma(null)}
+        onSuccess={() => refetch()}
+      />
     </div>
   );
 }

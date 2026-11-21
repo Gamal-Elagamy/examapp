@@ -115,7 +115,7 @@ export function AdminDiplomasTable({
         </div>
       </div>
 
-      {/* Table Rows List */}
+      {/* Table Rows List with Full Row Hover */}
       <div className="divide-y divide-border/60">
         {diplomas.map((diploma) => {
           const isMenuOpen = activeMenuId === diploma.id;
@@ -125,12 +125,12 @@ export function AdminDiplomasTable({
           return (
             <div
               key={diploma.id}
-              className="px-4 py-3.5 flex items-center justify-between gap-4 sm:gap-6 hover:bg-slate-50/70 transition-colors relative"
+              className="group px-4 py-3.5 flex items-center justify-between gap-4 sm:gap-6 hover:bg-slate-50 transition-all duration-150 relative cursor-pointer"
             >
               {/* Row Left Section: Thumbnail & Title & Description */}
               <div className="flex items-center gap-6 sm:gap-10 flex-1 min-w-0">
                 {/* Thumbnail */}
-                <div className="size-14 sm:size-16 rounded-xl bg-slate-100 border border-border/60 overflow-hidden shrink-0 flex items-center justify-center">
+                <div className="size-14 sm:size-16 rounded-xl bg-slate-100 border border-border/60 overflow-hidden shrink-0 flex items-center justify-center transition-transform duration-150 group-hover:scale-102">
                   {diploma.image ? (
                     <Image
                       src={diploma.image}
@@ -153,7 +153,7 @@ export function AdminDiplomasTable({
                 >
                   <Link
                     href={ROUTES.ADMIN.DIPLOMA_DETAILS(diploma.id)}
-                    className="font-bold text-xs sm:text-sm text-foreground hover:text-primary transition-colors font-mono line-clamp-1 block"
+                    className="font-bold text-xs sm:text-sm text-foreground group-hover:text-primary transition-colors font-mono line-clamp-1 block"
                   >
                     {diploma.title}
                   </Link>
@@ -180,6 +180,7 @@ export function AdminDiplomasTable({
               <div
                 className="relative shrink-0"
                 ref={isMenuOpen ? menuRef : undefined}
+                onClick={(e) => e.stopPropagation()}
               >
                 <button
                   type="button"

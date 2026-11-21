@@ -1,9 +1,11 @@
 "use client";
 
+import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Ban, Pencil, Trash2, ArrowLeft } from "lucide-react";
 import { ROUTES } from "@/routes";
+import { DeleteDiplomaDialog } from "./delete-diploma-dialog";
 import type { IDiploma } from "@/shared/lib/types/diploma";
 
 interface AdminDiplomaViewProps {
@@ -11,6 +13,7 @@ interface AdminDiplomaViewProps {
 }
 
 export function AdminDiplomaView({ diploma }: AdminDiplomaViewProps) {
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   return (
     <div className="space-y-6 max-w-5xl">
       {/* Top Breadcrumb Navigation */}
@@ -43,19 +46,18 @@ export function AdminDiplomaView({ diploma }: AdminDiplomaViewProps) {
           )}
 
           {/* Edit Button */}
-          <button
-            type="button"
-            onClick={() => alert(`Edit ${diploma.title} will be connected in next step.`)}
+          <Link
+            href={ROUTES.ADMIN.EDIT_DIPLOMA(diploma.id)}
             className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-semibold shadow-xs transition-colors cursor-pointer"
           >
             <Pencil className="size-3.5" />
             <span>Edit</span>
-          </button>
+          </Link>
 
           {/* Delete Button */}
           <button
             type="button"
-            onClick={() => alert(`Delete ${diploma.title} will be connected in next step.`)}
+            onClick={() => setIsDeleteDialogOpen(true)}
             className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white text-xs font-semibold shadow-xs transition-colors cursor-pointer"
           >
             <Trash2 className="size-3.5" />
@@ -118,6 +120,13 @@ export function AdminDiplomaView({ diploma }: AdminDiplomaViewProps) {
           <span>Back to Diplomas</span>
         </Link>
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <DeleteDiplomaDialog
+        isOpen={isDeleteDialogOpen}
+        diploma={diploma}
+        onClose={() => setIsDeleteDialogOpen(false)}
+      />
     </div>
   );
 }

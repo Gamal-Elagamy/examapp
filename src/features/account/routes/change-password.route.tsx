@@ -1,12 +1,6 @@
-import type { Metadata } from "next";
 import { Suspense } from "react";
 import { ChangePasswordForm } from "@/features/account/components/change-password-form";
 import { Skeleton } from "@/shared/ui/skeleton";
-
-export const metadata: Metadata = {
-  title: "Admin Change Password | Elevate Exam App",
-  description: "Update your admin account password.",
-};
 
 function ChangePasswordSkeleton() {
   return (
@@ -19,7 +13,7 @@ function ChangePasswordSkeleton() {
   );
 }
 
-export default function AdminChangePasswordPage() {
+export function ChangePasswordRoute() {
   return (
     <Suspense fallback={<ChangePasswordSkeleton />}>
       <ChangePasswordForm />

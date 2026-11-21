@@ -53,7 +53,8 @@ export function AppSidebar({ user: initialUser }: AppSidebarProps) {
   const isProfileActive =
     pathname === ROUTES.PROFILE ||
     pathname === ROUTES.CHANGE_PASSWORD ||
-    pathname.startsWith("/account");
+    pathname.startsWith("/account") ||
+    pathname.startsWith(ROUTES.ADMIN.PROFILE);
 
   return (
     <aside className="w-64 h-screen h-dvh border-e border-border/70 bg-brand-blue-50 flex flex-col justify-between shrink-0 p-6 select-none">
@@ -97,7 +98,7 @@ export function AppSidebar({ user: initialUser }: AppSidebarProps) {
 
           {/* Account Settings Item */}
           <Link
-            href={ROUTES.PROFILE}
+            href={isAdmin ? ROUTES.ADMIN.PROFILE : ROUTES.PROFILE}
             className={`flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-medium transition-colors ${
               isProfileActive
                 ? "bg-white text-primary border border-primary/20 shadow-xs"
@@ -116,7 +117,7 @@ export function AppSidebar({ user: initialUser }: AppSidebarProps) {
         {isDropdownOpen && (
           <div className="absolute inset-x-0 bottom-full mb-3 rounded-lg border border-border bg-popover p-1.5 shadow-lg text-xs z-50 animate-in fade-in-50 slide-in-from-bottom-2">
             <Link
-              href={ROUTES.PROFILE}
+              href={isAdmin ? ROUTES.ADMIN.PROFILE : ROUTES.PROFILE}
               onClick={() => setIsDropdownOpen(false)}
               className="flex items-center gap-2.5 w-full px-3 py-2 rounded-md hover:bg-accent hover:text-accent-foreground text-foreground transition-colors font-medium"
             >

@@ -13,6 +13,7 @@ import {
   MoreVertical,
   LogOut,
   Code2,
+  LayoutGrid,
 } from "lucide-react";
 import { ROUTES } from "@/routes";
 import { useProfile } from "@/features/account/hooks/use-profile";
@@ -45,15 +46,16 @@ export function AdminSidebar({ user: initialUser, onNavigate }: AdminSidebarProp
   }, []);
 
   const isDiplomasActive =
-    pathname === "/" ||
     pathname === ROUTES.ADMIN.ROOT ||
-    pathname.startsWith("/dashboard/diplomas");
-  const isExamsActive = pathname.startsWith("/exams") || pathname.startsWith("/dashboard/exams");
+    pathname.startsWith("/admin/diplomas");
+  const isExamsActive = pathname.startsWith("/admin/exams") || pathname.startsWith("/exams");
   const isAccountActive =
+    pathname.startsWith("/admin/profile") ||
+    pathname.startsWith("/admin/change-password") ||
     pathname.startsWith("/profile") ||
     pathname.startsWith("/change-password") ||
     pathname.startsWith("/account");
-  const isAuditLogActive = pathname.startsWith("/dashboard/audit-log") || pathname.startsWith("/audit-log");
+  const isAuditLogActive = pathname.startsWith("/admin/audit-log") || pathname.startsWith("/audit-log");
 
   const avatarInitial = (user?.firstName?.[0] || user?.username?.[0] || "A").toUpperCase();
   const displayName = user?.firstName
@@ -147,19 +149,19 @@ export function AdminSidebar({ user: initialUser, onNavigate }: AdminSidebarProp
 
       {/* Bottom Section: Admin User Card & Menu */}
       <div className="relative pt-6 border-t border-[#24303F]" ref={dropdownRef}>
-        {/* Dropdown Menu */}
+        {/* Dropdown Menu (matching screenshot) */}
         {isDropdownOpen && (
-          <div className="absolute inset-x-0 bottom-full mb-3 rounded-lg border border-[#313D4A] bg-[#24303F] p-1.5 shadow-xl text-xs z-50 animate-in fade-in-50 slide-in-from-bottom-2 text-slate-200">
+          <div className="absolute inset-x-0 bottom-full mb-3 rounded-xl border border-border bg-white p-1.5 shadow-2xl text-xs z-50 animate-in fade-in-50 slide-in-from-bottom-2 text-slate-700 divide-y divide-border/60 font-mono">
             <Link
               href={ROUTES.ADMIN.PROFILE}
               onClick={() => {
                 setIsDropdownOpen(false);
                 onNavigate?.();
               }}
-              className="flex items-center gap-2.5 w-full px-3 py-2 rounded-md hover:bg-[#313D4A] text-slate-200 transition-colors font-medium"
+              className="flex items-center gap-2.5 w-full px-3 py-2.5 rounded-lg hover:bg-slate-50 text-slate-700 transition-colors font-medium"
             >
-              <User className="size-4 text-slate-400" />
-              <span>Account Settings</span>
+              <User className="size-4 text-slate-500" />
+              <span>Account</span>
             </Link>
 
             <Link
@@ -168,20 +170,18 @@ export function AdminSidebar({ user: initialUser, onNavigate }: AdminSidebarProp
                 setIsDropdownOpen(false);
                 onNavigate?.();
               }}
-              className="flex items-center gap-2.5 w-full px-3 py-2 rounded-md hover:bg-[#313D4A] text-slate-200 transition-colors font-medium"
+              className="flex items-center gap-2.5 w-full px-3 py-2.5 rounded-lg hover:bg-slate-50 text-slate-700 transition-colors font-medium"
             >
-              <GraduationCap className="size-4 text-slate-400" />
-              <span>Student View</span>
+              <LayoutGrid className="size-4 text-slate-500" />
+              <span>Application</span>
             </Link>
-
-            <div className="my-1 border-t border-[#313D4A]" />
 
             <button
               type="button"
               onClick={() => signOut({ callbackUrl: ROUTES.AUTH.LOGIN })}
-              className="flex items-center gap-2.5 w-full px-3 py-2 rounded-md hover:bg-destructive/20 text-red-400 transition-colors font-medium cursor-pointer"
+              className="flex items-center gap-2.5 w-full px-3 py-2.5 rounded-lg hover:bg-red-50 text-red-500 transition-colors font-medium cursor-pointer"
             >
-              <LogOut className="size-4" />
+              <LogOut className="size-4 text-red-500" />
               <span>Logout</span>
             </button>
           </div>

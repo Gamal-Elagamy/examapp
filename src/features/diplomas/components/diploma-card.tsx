@@ -32,7 +32,8 @@ export function DiplomaCard({ diploma }: DiplomaCardProps) {
       {/* Opacity fixed at 0.8 in all states (resting & hovered) */}
       {/* Resting: compact height ~56px showing only title */}
       {/* Hovered: expands smoothly to height: 216px, max-height: 216px, revealing description */}
-      <div className="relative z-10 mb-4 w-[284px] max-w-[calc(100%-24px)] h-14 max-h-[216px] rounded-xl bg-primary text-white px-4 py-3.5 flex flex-col justify-center opacity-80 backdrop-blur-xs shadow-lg transition-all duration-300 ease-out group-hover:h-[216px] group-hover:justify-end group-hover:p-5 group-hover:-translate-y-1 overflow-hidden">
+      {/* Width is exactly 10px less than the diploma card image width */}
+      <div className="relative z-10 mb-4 w-[calc(100%-10px)] max-w-[calc(100%-10px)] h-14 max-h-[216px] rounded-xl bg-primary text-white px-4 py-3.5 flex flex-col justify-center opacity-80 backdrop-blur-xs shadow-lg transition-all duration-300 ease-out group-hover:h-[216px] group-hover:justify-end group-hover:p-5 group-hover:-translate-y-1 overflow-hidden">
         {/* Title: always visible, expands to 2 lines on hover if needed */}
         <h3 className="text-base sm:text-lg font-bold tracking-tight text-white line-clamp-1 group-hover:line-clamp-2 transition-all duration-200">
           {diploma.title}

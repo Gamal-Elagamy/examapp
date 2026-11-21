@@ -18,8 +18,8 @@ export function AdminDiplomasFilter({
 }: AdminDiplomasFilterProps) {
   const [isOpen, setIsOpen] = useState(true);
   const [searchTerm, setSearchTerm] = useState(initialSearch);
-  const [immutableValue, setImmutableValue] = useState<"all" | "true" | "false">(
-    initialImmutable === true ? "true" : initialImmutable === false ? "false" : "all",
+  const [immutableValue, setImmutableValue] = useState<"none" | "true" | "false">(
+    initialImmutable === true ? "true" : initialImmutable === false ? "false" : "none",
   );
 
   const handleApply = (e?: React.FormEvent) => {
@@ -31,7 +31,7 @@ export function AdminDiplomasFilter({
 
   const handleClear = () => {
     setSearchTerm("");
-    setImmutableValue("all");
+    setImmutableValue("none");
     onClear();
   };
 
@@ -84,14 +84,14 @@ export function AdminDiplomasFilter({
             </button>
           </div>
 
-          {/* Immutability Dropdown Select */}
+          {/* Immutability Dropdown Select: [None, Immutable, Mutable] */}
           <div className="relative">
             <select
               value={immutableValue}
-              onChange={(e) => setImmutableValue(e.target.value as "all" | "true" | "false")}
+              onChange={(e) => setImmutableValue(e.target.value as "none" | "true" | "false")}
               className="w-full appearance-none px-4 py-2.5 pe-10 rounded-lg border border-border bg-white text-xs sm:text-sm font-mono text-foreground focus:outline-hidden focus:border-primary focus:ring-1 focus:ring-primary transition-colors cursor-pointer"
             >
-              <option value="all">Immutability (All)</option>
+              <option value="none">None</option>
               <option value="true">Immutable</option>
               <option value="false">Mutable</option>
             </select>

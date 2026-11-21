@@ -164,7 +164,7 @@ export function AppHeader({ user: initialUser }: AppHeaderProps) {
 
               <div className="py-1">
                 <Link
-                  href={ROUTES.PROFILE}
+                  href={isAdmin ? ROUTES.ADMIN.PROFILE : ROUTES.PROFILE}
                   onClick={() => setIsUserMenuOpen(false)}
                   className="flex items-center gap-2.5 w-full px-3 py-2 rounded-md hover:bg-accent text-foreground transition-colors font-medium"
                 >
@@ -260,7 +260,7 @@ export function AppHeader({ user: initialUser }: AppHeaderProps) {
                 </Link>
 
                 <Link
-                  href={ROUTES.PROFILE}
+                  href={isAdmin ? ROUTES.ADMIN.PROFILE : ROUTES.PROFILE}
                   onClick={() => setIsDrawerOpen(false)}
                   className={`flex items-center justify-between px-3.5 py-2.5 rounded-lg text-sm font-medium transition-colors ${
                     isProfileActive

@@ -3,7 +3,7 @@ import { getToken } from "next-auth/jwt";
 import { ROUTES } from "@/routes";
 
 const protectedPaths = ["/exams", "/questions", "/profile", "/change-password", "/dashboard", "/admin"];
-const authPaths = ["/login", "/register", "/forget-password", "/forgot-password", "/reset-password"];
+const authPaths = ["/login", "/register", "/forget-password", "/reset-password"];
 
 export async function proxy(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
@@ -42,15 +42,14 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL(target, request.url));
   }
 
-  // If an ADMIN accesses root "/", immediately redirect them to Admin Diplomas dashboard
-  if (isHome && token) {
-    const userRole = (token.user as { role?: string } | undefined)?.role;
-    if (userRole === "ADMIN" || userRole === "SUPER_ADMIN") {
-      return NextResponse.redirect(new URL(ROUTES.ADMIN.DIPLOMAS, request.url));
-    }
-  }
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set("x-pathname", pathname);
 
-  return NextResponse.next();
+  return NextResponse.next({
+    request: {
+      headers: requestHeaders,
+    },
+  });
 }
 
 export const config = {
@@ -65,7 +64,6 @@ export const config = {
     "/login",
     "/register",
     "/forget-password",
-    "/forgot-password",
     "/reset-password",
   ],
 };
