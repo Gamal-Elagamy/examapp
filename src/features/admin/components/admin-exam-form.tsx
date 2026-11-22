@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -45,6 +46,7 @@ export function AdminExamForm({
   initialQuestions = [],
   diplomas = [],
 }: AdminExamFormProps) {
+  const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { data: session } = useSession();
   const isSuperAdmin = session?.user?.role === USER_ROLES.SUPER_ADMIN;
@@ -515,6 +517,11 @@ export function AdminExamForm({
             </h2>
             <button
               type="button"
+              onClick={() => {
+                if (initialExam?.id) {
+                  router.push(ROUTES.ADMIN.CREATE_QUESTION(initialExam.id));
+                }
+              }}
               className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-white/20 hover:bg-white/30 text-white font-mono text-xs font-semibold backdrop-blur-xs transition-colors cursor-pointer"
             >
               <Plus className="size-3.5" />
@@ -568,7 +575,17 @@ export function AdminExamForm({
                           {/* View Question (always enabled) */}
                           <button
                             type="button"
-                            onClick={() => setActiveMenuId(null)}
+                            onClick={() => {
+                              setActiveMenuId(null);
+                              if (initialExam?.id) {
+                                router.push(
+                                  ROUTES.ADMIN.QUESTION_DETAILS(
+                                    initialExam.id,
+                                    question.id,
+                                  ),
+                                );
+                              }
+                            }}
                             className="flex items-center gap-2.5 w-full px-3 py-2 rounded-lg text-emerald-600 hover:bg-emerald-50 transition-colors font-medium cursor-pointer"
                           >
                             <Eye className="size-3.5 text-emerald-600" />
@@ -580,8 +597,14 @@ export function AdminExamForm({
                             type="button"
                             disabled={isQuestionActionRestricted}
                             onClick={() => {
-                              if (!isQuestionActionRestricted) {
+                              if (!isQuestionActionRestricted && initialExam?.id) {
                                 setActiveMenuId(null);
+                                router.push(
+                                  ROUTES.ADMIN.EDIT_QUESTION(
+                                    initialExam.id,
+                                    question.id,
+                                  ),
+                                );
                               }
                             }}
                             title={

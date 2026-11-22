@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import {
   Ban,
@@ -19,6 +20,7 @@ import {
 import { ROUTES } from "@/routes";
 import { USER_ROLES } from "@/shared/lib/constants/api.constant";
 import { DeleteExamDialog } from "./delete-exam-dialog";
+import { DeleteQuestionDialog } from "./delete-question-dialog";
 import type { IExamDetails } from "@/shared/lib/types/exam";
 import type { IQuestion } from "@/shared/lib/types/question";
 
@@ -28,6 +30,7 @@ interface AdminExamViewProps {
 }
 
 export function AdminExamView({ exam, initialQuestions = [] }: AdminExamViewProps) {
+  const router = useRouter();
   const { data: session } = useSession();
   const isSuperAdmin = session?.user?.role === USER_ROLES.SUPER_ADMIN;
 
@@ -36,6 +39,8 @@ export function AdminExamView({ exam, initialQuestions = [] }: AdminExamViewProp
   const [showImmutabilityTooltip, setShowImmutabilityTooltip] = useState(false);
   const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [selectedQuestionToDelete, setSelectedQuestionToDelete] =
+    useState<IQuestion | null>(null);
 
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -269,6 +274,7 @@ export function AdminExamView({ exam, initialQuestions = [] }: AdminExamViewProp
           </h2>
           <button
             type="button"
+            onClick={() => router.push(ROUTES.ADMIN.CREATE_QUESTION(exam.id))}
             className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-white/20 hover:bg-white/30 text-white font-mono text-xs font-semibold backdrop-blur-xs transition-colors cursor-pointer"
           >
             <Plus className="size-3.5" />
@@ -304,9 +310,12 @@ export function AdminExamView({ exam, initialQuestions = [] }: AdminExamViewProp
                   key={question.id}
                   className="px-6 py-4 flex items-center justify-between gap-4 hover:bg-slate-50 transition-colors group relative"
                 >
-                  <p className="text-xs sm:text-sm text-foreground font-mono flex-1 leading-relaxed">
+                  <Link
+                    href={ROUTES.ADMIN.QUESTION_DETAILS(exam.id, question.id)}
+                    className="text-xs sm:text-sm text-foreground hover:text-primary transition-colors font-mono flex-1 leading-relaxed cursor-pointer"
+                  >
                     {question.text}
-                  </p>
+                  </Link>
 
                   {/* Actions Dropdown for Question */}
                   <div
@@ -328,7 +337,12 @@ export function AdminExamView({ exam, initialQuestions = [] }: AdminExamViewProp
                       <div className="absolute inset-e-0 top-full mt-1.5 w-36 rounded-xl border border-border bg-white p-1.5 shadow-xl text-xs z-50 animate-in fade-in-50 zoom-in-95 font-mono">
                         <button
                           type="button"
-                          onClick={() => setActiveMenuId(null)}
+                          onClick={() => {
+                            setActiveMenuId(null);
+                            router.push(
+                              ROUTES.ADMIN.QUESTION_DETAILS(exam.id, question.id),
+                            );
+                          }}
                           className="flex items-center gap-2.5 w-full px-3 py-2 rounded-lg text-emerald-600 hover:bg-emerald-50 transition-colors font-medium cursor-pointer"
                         >
                           <Eye className="size-3.5 text-emerald-600" />
@@ -336,7 +350,12 @@ export function AdminExamView({ exam, initialQuestions = [] }: AdminExamViewProp
                         </button>
                         <button
                           type="button"
-                          onClick={() => setActiveMenuId(null)}
+                          onClick={() => {
+                            setActiveMenuId(null);
+                            router.push(
+                              ROUTES.ADMIN.EDIT_QUESTION(exam.id, question.id),
+                            );
+                          }}
                           className="flex items-center gap-2.5 w-full px-3 py-2 rounded-lg text-primary hover:bg-primary/10 transition-colors font-medium cursor-pointer"
                         >
                           <Pencil className="size-3.5 text-primary" />
@@ -344,7 +363,10 @@ export function AdminExamView({ exam, initialQuestions = [] }: AdminExamViewProp
                         </button>
                         <button
                           type="button"
-                          onClick={() => setActiveMenuId(null)}
+                          onClick={() => {
+                            setActiveMenuId(null);
+                            setSelectedQuestionToDelete(question);
+                          }}
                           className="flex items-center gap-2.5 w-full px-3 py-2 rounded-lg text-destructive hover:bg-destructive/10 transition-colors font-medium cursor-pointer"
                         >
                           <Trash2 className="size-3.5 text-destructive" />
@@ -376,6 +398,20 @@ export function AdminExamView({ exam, initialQuestions = [] }: AdminExamViewProp
         isOpen={isDeleteDialogOpen}
         exam={exam}
         onClose={() => setIsDeleteDialogOpen(false)}
+      />
+
+      {/* Delete Question Confirmation Dialog */}
+      <DeleteQuestionDialog
+        isOpen={Boolean(selectedQuestionToDelete)}
+        question={selectedQuestionToDelete}
+        onClose={() => setSelectedQuestionToDelete(null)}
+        onSuccess={() => {
+          if (selectedQuestionToDelete) {
+            setQuestions((prev) =>
+              prev.filter((q) => q.id !== selectedQuestionToDelete.id),
+            );
+          }
+        }}
       />
     </div>
   );

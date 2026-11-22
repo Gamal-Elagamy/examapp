@@ -25,6 +25,13 @@ export const ROUTES = {
     CREATE_EXAM: "/admin/exams/new",
     EXAM_DETAILS: (id: string) => `/admin/exams/${id}`,
     EDIT_EXAM: (id: string) => `/admin/exams/${id}/edit`,
+    QUESTIONS: (examId: string) => `/admin/exams/${examId}/questions`,
+    QUESTION_DETAILS: (examId: string, questionId: string) =>
+      `/admin/exams/${examId}/questions/${questionId}`,
+    CREATE_QUESTION: (examId: string) =>
+      `/admin/exams/${examId}/questions/new`,
+    EDIT_QUESTION: (examId: string, questionId: string) =>
+      `/admin/exams/${examId}/questions/${questionId}/edit`,
     AUDIT_LOG: "/admin/audit-log",
     PROFILE: "/admin/profile",
     CHANGE_PASSWORD: "/admin/change-password",

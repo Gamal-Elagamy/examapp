@@ -1,6 +1,9 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { auth } from "@/auth";
-import { getExamQuestions } from "@/features/questions/lib/apis/questions.api";
+import {
+  getExamQuestions,
+  createQuestion,
+} from "@/features/questions/lib/apis/questions.api";
 
 interface RouteParams {
   params: Promise<{ examId: string }>;
@@ -34,6 +37,30 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     return NextResponse.json(payload);
   } catch (error) {
     const message = error instanceof Error ? error.message : "Failed to fetch exam questions";
+    return NextResponse.json(
+      { status: false, code: 500, message },
+      { status: 500 },
+    );
+  }
+}
+
+export async function POST(request: NextRequest, { params }: RouteParams) {
+  const session = await auth();
+  if (!session?.token) {
+    return NextResponse.json(
+      { status: false, code: 401, message: "Unauthorized" },
+      { status: 401 },
+    );
+  }
+
+  const { examId } = await params;
+
+  try {
+    const body = await request.json();
+    const payload = await createQuestion(examId, body, session.token);
+    return NextResponse.json(payload);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Failed to create question";
     return NextResponse.json(
       { status: false, code: 500, message },
       { status: 500 },

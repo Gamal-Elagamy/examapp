@@ -133,7 +133,7 @@ export function AdminExamsRoute({ initialData }: AdminExamsRouteProps) {
   };
 
   const handleAddQuestions = (exam: IExam) => {
-    router.push(ROUTES.ADMIN.EDIT_EXAM(exam.id));
+    router.push(ROUTES.ADMIN.CREATE_QUESTION(exam.id));
   };
 
   return (

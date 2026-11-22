@@ -98,8 +98,11 @@ function TechIcon({ title, image }: { title: string; image?: string | null }) {
 
 export function ExamCard({ exam }: ExamCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
-  const questionsCount = exam.numberOfQuestions || 25;
-  const duration = exam.duration || 20;
+  const questionsCount =
+    exam.numberOfQuestions ??
+    (exam as { questionsCount?: number }).questionsCount ??
+    0;
+  const duration = exam.duration ?? 0;
 
   const isLongDescription = exam.description && exam.description.length > 180;
 
