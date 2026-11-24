@@ -16,6 +16,7 @@ import {
   LayoutGrid,
 } from "lucide-react";
 import { ROUTES } from "@/routes";
+import { USER_ROLES } from "@/shared/lib/constants/api.constant";
 import { useProfile } from "@/features/account/hooks/use-profile";
 import logoImg from "@/assets/logo.png";
 import type { IUser } from "@/shared/lib/types/user";
@@ -131,19 +132,22 @@ export function AdminSidebar({ user: initialUser, onNavigate }: AdminSidebarProp
             <span>Account Settings</span>
           </Link>
 
-          {/* Audit Log Item */}
-          <Link
-            href={ROUTES.ADMIN.AUDIT_LOG}
-            onClick={onNavigate}
-            className={`flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-              isAuditLogActive
-                ? "bg-[#24303F] text-white border border-[#313D4A] shadow-xs"
-                : "text-slate-400 hover:text-white hover:bg-[#24303F]/60"
-            }`}
-          >
-            <ListChecks className="size-4.5" />
-            <span>Audit Log</span>
-          </Link>
+          {/* Audit Log Item (Only visible to admins and super admins - Hint 3) */}
+          {(user?.role === USER_ROLES.ADMIN ||
+            user?.role === USER_ROLES.SUPER_ADMIN) && (
+            <Link
+              href={ROUTES.ADMIN.AUDIT_LOG}
+              onClick={onNavigate}
+              className={`flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                isAuditLogActive
+                  ? "bg-[#24303F] text-white border border-[#313D4A] shadow-xs"
+                  : "text-slate-400 hover:text-white hover:bg-[#24303F]/60"
+              }`}
+            >
+              <ListChecks className="size-4.5" />
+              <span>Audit Log</span>
+            </Link>
+          )}
         </nav>
       </div>
 
