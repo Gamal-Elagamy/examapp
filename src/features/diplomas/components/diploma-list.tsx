@@ -72,8 +72,8 @@ export function DiplomaList({ search, initialData }: DiplomaListProps) {
     <div className="space-y-8">
       {/* 3-Column Diplomas Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {allDiplomas.map((diploma) => (
-          <DiplomaCard key={diploma.id} diploma={diploma} />
+        {allDiplomas.map((diploma, index) => (
+          <DiplomaCard key={diploma.id} diploma={diploma} priority={index < 3} />
         ))}
       </div>
 

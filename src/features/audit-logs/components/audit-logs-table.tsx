@@ -309,7 +309,7 @@ export function AuditLogsTable({
                         <span>View</span>
                       </Link>
 
-                      {/* Delete Action (Hint 4: Only visible to super admins) */}
+                      {/* Delete Action (Super Admins only) */}
                       {isSuperAdmin && (
                         <button
                           type="button"

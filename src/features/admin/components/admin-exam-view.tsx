@@ -146,7 +146,7 @@ export function AdminExamView({ exam, initialQuestions = [] }: AdminExamViewProp
               <span>Immutable</span>
             </button>
 
-            {/* Hover Tooltip when not Super Admin (per requirements hint A) */}
+            {/* Immutability Toggle Tooltip */}
             {!isSuperAdmin && showImmutabilityTooltip && (
               <div className="absolute bottom-full inset-s-1/2 -translate-x-1/2 mb-2 z-50 bg-slate-900 text-white text-[11px] font-mono px-3 py-1.5 rounded-lg shadow-xl whitespace-nowrap animate-in fade-in-50 duration-150 pointer-events-none">
                 Only super admins are allowed to toggle the immutability

@@ -5,9 +5,10 @@ import type { IDiploma } from "@/shared/lib/types/diploma";
 
 interface DiplomaCardProps {
   diploma: IDiploma;
+  priority?: boolean;
 }
 
-export function DiplomaCard({ diploma }: DiplomaCardProps) {
+export function DiplomaCard({ diploma, priority = false }: DiplomaCardProps) {
   return (
     <Link
       href={ROUTES.EXAMS.BY_DIPLOMA(diploma.id)}
@@ -19,6 +20,7 @@ export function DiplomaCard({ diploma }: DiplomaCardProps) {
           src={diploma.image}
           alt={diploma.title}
           fill
+          priority={priority}
           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
           className="object-cover transition-transform duration-500 group-hover:scale-105"
         />

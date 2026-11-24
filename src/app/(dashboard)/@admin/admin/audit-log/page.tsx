@@ -19,7 +19,7 @@ export default async function AdminAuditLogPage() {
     redirect(ROUTES.AUTH.LOGIN);
   }
 
-  // Hint 3: Only visible to admins and super admins
+  // Role-based access control: Only visible to admins and super admins
   const role = session.user?.role;
   const isAuthorized =
     role === USER_ROLES.ADMIN || role === USER_ROLES.SUPER_ADMIN;

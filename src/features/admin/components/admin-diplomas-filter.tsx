@@ -69,10 +69,12 @@ export function AdminDiplomasFilter({
           {/* Search by Title Field */}
           <div className="relative">
             <input
+              id="search-diploma-title"
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search by title"
+              aria-label="Search by title"
               className="w-full px-4 py-2.5 pe-10 rounded-lg border border-border bg-white text-xs sm:text-sm font-mono text-foreground placeholder:text-muted-foreground focus:outline-hidden focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
             />
             <button
@@ -87,8 +89,10 @@ export function AdminDiplomasFilter({
           {/* Immutability Dropdown Select: [None, Immutable, Mutable] */}
           <div className="relative">
             <select
+              id="filter-diploma-immutability"
               value={immutableValue}
               onChange={(e) => setImmutableValue(e.target.value as "none" | "true" | "false")}
+              aria-label="Filter by immutability"
               className="w-full appearance-none px-4 py-2.5 pe-10 rounded-lg border border-border bg-white text-xs sm:text-sm font-mono text-foreground focus:outline-hidden focus:border-primary focus:ring-1 focus:ring-primary transition-colors cursor-pointer"
             >
               <option value="none">None</option>

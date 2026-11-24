@@ -28,7 +28,7 @@ export function AuditLogsRoute({ initialData }: AuditLogsRouteProps) {
   // Filter & Query params
   const [params, setParams] = useState<GetAuditLogsParams>({
     page: 1,
-    limit: 20, // Hint 2: 20 items per page!
+    limit: 20,
     sortBy: "createdAt",
     sortOrder: "desc",
   });
@@ -187,7 +187,7 @@ export function AuditLogsRoute({ initialData }: AuditLogsRouteProps) {
           )}
         </div>
 
-        {/* Clear All Logs Button (Hint 1: Only visible to super admins) */}
+        {/* Clear All Logs Button (Super Admins only) */}
         {isSuperAdmin && (
           <button
             type="button"

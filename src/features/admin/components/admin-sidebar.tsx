@@ -132,7 +132,7 @@ export function AdminSidebar({ user: initialUser, onNavigate }: AdminSidebarProp
             <span>Account Settings</span>
           </Link>
 
-          {/* Audit Log Item (Only visible to admins and super admins - Hint 3) */}
+          {/* Audit Log Item (Admins and Super Admins only) */}
           {(user?.role === USER_ROLES.ADMIN ||
             user?.role === USER_ROLES.SUPER_ADMIN) && (
             <Link

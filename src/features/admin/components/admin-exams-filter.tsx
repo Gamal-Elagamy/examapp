@@ -90,10 +90,12 @@ export function AdminExamsFilter({
           {/* Row 1: Search by title */}
           <div className="relative">
             <input
+              id="search-exam-title"
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search by title"
+              aria-label="Search by title"
               className="w-full h-11 px-4 pe-10 rounded-lg border border-border/80 bg-white text-xs sm:text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
             />
             <Search className="absolute inset-e-3.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none" />
@@ -104,8 +106,10 @@ export function AdminExamsFilter({
             {/* Diploma Select */}
             <div className="relative">
               <select
+                id="filter-exam-diploma"
                 value={selectedDiploma}
                 onChange={(e) => setSelectedDiploma(e.target.value)}
+                aria-label="Filter by diploma"
                 className="w-full h-11 px-4 pe-10 rounded-lg border border-border/80 bg-white text-xs sm:text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary appearance-none cursor-pointer"
               >
                 <option value="">Diploma (All)</option>
@@ -121,8 +125,10 @@ export function AdminExamsFilter({
             {/* Immutability Select */}
             <div className="relative">
               <select
+                id="filter-exam-immutability"
                 value={immutableValue}
                 onChange={(e) => setImmutableValue(e.target.value)}
+                aria-label="Filter by immutability"
                 className="w-full h-11 px-4 pe-10 rounded-lg border border-border/80 bg-white text-xs sm:text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary appearance-none cursor-pointer"
               >
                 <option value="none">Immutability (None)</option>

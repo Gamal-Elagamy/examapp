@@ -507,7 +507,7 @@ export function AdminExamForm({
         </div>
       </div>
 
-      {/* Card 2: Exam Questions (Only visible when editing an exam - Hint 1) */}
+      {/* Card 2: Exam Questions (Visible when editing) */}
       {isEditing && (
         <div className="rounded-2xl border border-border/80 bg-white overflow-hidden shadow-2xs">
           {/* Blue Header Bar */}
@@ -569,7 +569,7 @@ export function AdminExamForm({
                         <MoreHorizontal className="size-4" />
                       </button>
 
-                      {/* Dropdown Menu (Hint 2: When immutable is truthy, Edit/Delete only for super admins) */}
+                      {/* Actions Menu: Immutability restrictions apply */}
                       {isMenuOpen && (
                         <div className="absolute inset-e-0 top-full mt-1.5 w-40 rounded-xl border border-border bg-white p-1.5 shadow-xl text-xs z-50 animate-in fade-in-50 zoom-in-95 font-mono">
                           {/* View Question (always enabled) */}
