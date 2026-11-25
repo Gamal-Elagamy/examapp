@@ -138,64 +138,21 @@ Tested on live production deployment ([examapp-sigma.vercel.app](https://examapp
 
 ---
 
-## 🏁 Getting Started
-
-### Prerequisites
-
-- **Node.js** >= 18.18.0 (Node 20+ recommended)
-- **npm**, **pnpm**, or **yarn**
-
-### 1. Clone the repository
+## 🏁 Quick Start
 
 ```bash
+# 1. Clone the repository
 git clone https://github.com/your-username/examapp.git
 cd examapp
-```
 
-### 2. Install dependencies
-
-```bash
+# 2. Install dependencies
 npm install
-```
 
-### 3. Environment Variables Configuration
-
-Create a `.env.local` file in the root directory:
-
-```env
-# Backend API Base URL
-NEXT_PUBLIC_API_URL=https://exam-app.elevate-bootcamp.cloud
-
-# NextAuth Configuration
-NEXTAUTH_URL=http://localhost:3000
-NEXTAUTH_SECRET=your-secure-random-secret-key-here
-```
-
-### 4. Run Development Server
-
-```bash
+# 3. Start development server
 npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to experience the application.
-
----
-
-## 🧪 Verification & Build Commands
-
-```bash
-# Type check without emitting files
-npx tsc --noEmit
-
-# Lint for code style and Next.js best practices
-npm run lint
-
-# Build optimized production bundle
-npm run build
-
-# Start production server
-npm run start
-```
 
 ---
 
