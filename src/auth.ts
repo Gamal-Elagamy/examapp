@@ -35,10 +35,11 @@ export const authOptions: NextAuthOptions = {
             }),
           });
 
-          const data: IApiResponse<LoginApiResponse> = await response.json();
+          const data: IApiResponse<LoginApiResponse> | null =
+            await response.json().catch(() => null);
 
-          if (!data.status || !data.payload) {
-            throw new Error(data.message || "Login failed");
+          if (!data || !data.status || !data.payload) {
+            throw new Error(data?.message || "Login failed");
           }
 
           let currentUser = data.payload.user;
@@ -92,7 +93,7 @@ export const authOptions: NextAuthOptions = {
   pages: {
     signIn: "/login",
   },
-  secret: env.NEXTAUTH_SECRET,
+  secret: process.env.NEXTAUTH_SECRET || env.NEXTAUTH_SECRET,
 };
 
 export const auth = () => getServerSession(authOptions);

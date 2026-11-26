@@ -40,7 +40,7 @@
                 ▼                                             ▼
   ┌───────────────────────────┐                 ┌───────────────────────────┐
   │      Student Portal       │                 │      Admin Dashboard      │
-  │     (@student slot)       │                 │       (@admin slot)       │
+  │       (@user slot)        │                 │       (@admin slot)       │
   ├───────────────────────────┤                 ├───────────────────────────┤
   │ • Diplomas Catalog        │                 │ • Diplomas Management     │
   │ • Infinite Scroll Browse  │                 │ • Exams Builder & Rules   │
@@ -52,11 +52,13 @@
 ```
 
 ### 👨‍🎓 1. Student Portal
+
 - **Diploma Discovery:** Dynamic grid browsing with responsive aspect ratio cards, smooth hover expansions, and infinite scroll pagination powered by TanStack Query.
 - **Examination Session:** Distraction-free exam taking environment with synchronized timers, state persistence, question jumper, and instant score computation with breakdown charts.
 - **Student Profile & Settings:** Profile updates, avatar selection, password change, and email change verification via email OTP flow.
 
 ### 🛡️ 2. Comprehensive Admin Dashboard
+
 - **Diplomas Management:** Create, view, edit, and delete diplomas with custom image uploads, title search, immutability filtering, and multi-criteria sorting.
 - **Exams Management:** Set duration, question limits, passing scores, and manage questions directly from the exam workspace.
 - **Question Bank & Editor:** Interactive question editor with multi-choice options, correct answer selection, and bulk question upload capabilities.
@@ -68,19 +70,19 @@
 
 ## 🛠️ Tech Stack & Libraries
 
-| Category | Technologies | Description |
-| :--- | :--- | :--- |
-| **Framework** | **Next.js 16.4.6** (App Router) | React Server Components, Parallel Routes, Server Actions & Route Handlers |
-| **Core** | **React 19.3.0** | Modern concurrent features, `use()` hook, and Suspense boundaries |
-| **Language** | **TypeScript 5 (Strict)** | Zero `any`, strict type checking, end-to-end typed API contracts |
-| **Styling** | **Tailwind CSS v4** | Canonical modern utilities (`bg-linear-to-*`, `inset-s-*`), CSS variables |
-| **UI Components** | **shadcn/ui & Radix UI** | Accessible headless primitives (Dialog, Select, Checkbox, Slot) |
-| **Icons & Media** | **Lucide React** | Featherweight tree-shaken SVG icon system |
-| **Data Fetching** | **TanStack Query v5** | Server-state management, cache invalidation, key factories, optimistic updates |
-| **Form Handling** | **React Hook Form** | High-performance uncontrolled form state management |
-| **Validation** | **Zod v4** | Schema validation for forms, environment variables, and backend payloads |
-| **Authentication** | **NextAuth.js v4** | Secure JWT-based session management with role-based edge proxy guards |
-| **Notifications** | **Sonner** | Clean, accessible toast notifications |
+| Category           | Technologies                    | Description                                                                    |
+| :----------------- | :------------------------------ | :----------------------------------------------------------------------------- |
+| **Framework**      | **Next.js 16.4.6** (App Router) | React Server Components, Parallel Routes, Server Actions & Route Handlers      |
+| **Core**           | **React 19.3.0**                | Modern concurrent features, `use()` hook, and Suspense boundaries              |
+| **Language**       | **TypeScript 5 (Strict)**       | Zero `any`, strict type checking, end-to-end typed API contracts               |
+| **Styling**        | **Tailwind CSS v4**             | Canonical modern utilities (`bg-linear-to-*`, `inset-s-*`), CSS variables      |
+| **UI Components**  | **shadcn/ui & Radix UI**        | Accessible headless primitives (Dialog, Select, Checkbox, Slot)                |
+| **Icons & Media**  | **Lucide React**                | Featherweight tree-shaken SVG icon system                                      |
+| **Data Fetching**  | **TanStack Query v5**           | Server-state management, cache invalidation, key factories, optimistic updates |
+| **Form Handling**  | **React Hook Form**             | High-performance uncontrolled form state management                            |
+| **Validation**     | **Zod v4**                      | Schema validation for forms, environment variables, and backend payloads       |
+| **Authentication** | **NextAuth.js v4**              | Secure JWT-based session management with role-based edge proxy guards          |
+| **Notifications**  | **Sonner**                      | Clean, accessible toast notifications                                          |
 
 ---
 
@@ -91,13 +93,13 @@ The codebase follows a strictly modular **Feature-Based Architecture**:
 ```
 src/
 ├── app/                              # Next.js App Router (Routing & Layouts only)
-│   ├── (dashboard)/                  # Parallel Route Slots (@student, @admin)
+│   ├── (dashboard)/                  # Parallel Route Slots (@user, @admin)
 │   │   ├── @admin/admin/             # Admin Dashboard Routes
 │   │   │   ├── audit-log/            # Audit Log List & Details [id]
 │   │   │   ├── diplomas/             # Diplomas Management (CRUD)
 │   │   │   ├── exams/                # Exams & Question Bank
 │   │   │   └── profile/              # Admin Profile & Security
-│   │   └── @student/                 # Student Examination Portal
+│   │   └── @user/                    # Student Examination Portal
 │   ├── api/                          # Next.js Route Handlers (Upload, Auth Proxy)
 │   └── (auth)/                       # Authentication Pages (Login, Register, OTP)
 ├── features/                         # Modular business domains
@@ -129,12 +131,12 @@ src/
 
 Tested on live production deployment ([examapp-sigma.vercel.app](https://examapp-sigma.vercel.app/)):
 
-| Metric | Score | Status |
-| :--- | :---: | :---: |
-| **Best Practices** | **100 / 100** | 🟢 Exceptional |
-| **SEO** | **100 / 100** | 🟢 Optimal Search Visibility |
-| **Accessibility (a11y)** | **98 - 100** | 🟢 WCAG AA Compliant |
-| **Performance** | **85 - 95+** | 🟢 Fast FCP & Optimized LCP |
+| Metric                   |     Score     |            Status            |
+| :----------------------- | :-----------: | :--------------------------: |
+| **Best Practices**       | **100 / 100** |        🟢 Exceptional        |
+| **SEO**                  | **100 / 100** | 🟢 Optimal Search Visibility |
+| **Accessibility (a11y)** | **98 - 100**  |     🟢 WCAG AA Compliant     |
+| **Performance**          | **85 - 95+**  | 🟢 Fast FCP & Optimized LCP  |
 
 ---
 
@@ -148,7 +150,11 @@ cd examapp
 # 2. Install dependencies
 npm install
 
-# 3. Start development server
+# 3. Configure environment variables (.env.local)
+cp .env.example .env.local
+# Set NEXT_PUBLIC_API_URL, NEXTAUTH_SECRET, and NEXTAUTH_URL
+
+# 4. Start development server
 npm run dev
 ```
 

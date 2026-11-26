@@ -65,6 +65,15 @@ export function ProfileForm({ initialUser }: ProfileFormProps) {
   const [uploadedPhotoUrl, setUploadedPhotoUrl] = useState<string | null>(null);
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
 
+  // Cleanup preview URL on unmount or change
+  useEffect(() => {
+  return () => {
+  if (localPreviewUrl) {
+  URL.revokeObjectURL(localPreviewUrl);
+  }
+  };
+  }, [localPreviewUrl]);
+
   // Derive photo during render: local temporary selection -> uploaded temp URL -> saved user profile photo
   const displayPhoto = localPreviewUrl || uploadedPhotoUrl || user?.profilePhoto || null;
 
@@ -73,361 +82,371 @@ export function ProfileForm({ initialUser }: ProfileFormProps) {
 
   // Close dropdown on outside click
   useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (countryDropdownRef.current && !countryDropdownRef.current.contains(event.target as Node)) {
-        setIsCountryDropdownOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+  function handleClickOutside(event: MouseEvent) {
+  if (countryDropdownRef.current && !countryDropdownRef.current.contains(event.target as Node)) {
+  setIsCountryDropdownOpen(false);
+  }
+  }
+  document.addEventListener("mousedown", handleClickOutside);
+  return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   const {
-    register,
-    handleSubmit,
-    setValue,
-    formState: { errors },
+  register,
+  handleSubmit,
+  setValue,
+  formState: { errors },
   } = useForm<ProfileFormValues>({
-    resolver: zodResolver(profileSchema),
-    defaultValues: {
-      firstName: user?.firstName || "",
-      lastName: user?.lastName || "",
-      email: user?.email || "",
-      phone: user?.phone || "",
-    },
-    values: user
-      ? {
-          firstName: user.firstName,
-          lastName: user.lastName,
-          email: user.email,
-          phone: user.phone || "",
-        }
-      : undefined,
+  resolver: zodResolver(profileSchema),
+  defaultValues: {
+  firstName: user?.firstName || "",
+  lastName: user?.lastName || "",
+  email: user?.email || "",
+  phone: user?.phone || "",
+  },
+  values: user
+  ? {
+  firstName: user.firstName,
+  lastName: user.lastName,
+  email: user.email,
+  phone: user.phone || "",
+  }
+  : undefined,
   });
 
   // Handle Photo Selection & Upload via /api/upload
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const file = e.target.files?.[0];
+  if (!file) return;
 
-    // Instant local preview
-    const localUrl = URL.createObjectURL(file);
-    setLocalPreviewUrl(localUrl);
+  // Instant local preview
+  const localUrl = URL.createObjectURL(file);
+  setLocalPreviewUrl(localUrl);
 
-    setIsUploadingPhoto(true);
-    setFeedbackMessage(null);
+  setIsUploadingPhoto(true);
+  setFeedbackMessage(null);
 
-    try {
-      const formData = new FormData();
-      formData.append("image", file);
+  try {
+  const formData = new FormData();
+  formData.append("image", file);
 
-      const res = await getClientUploadFile(formData);
-      setUploadedPhotoUrl(res.url);
-      setFeedbackMessage({
-        type: "success",
-        text: "Photo uploaded! Click Save Changes to update your account.",
-      });
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : "Failed to upload photo";
-      setFeedbackMessage({ type: "error", text: msg });
-      setLocalPreviewUrl(null);
-    } finally {
-      setIsUploadingPhoto(false);
-    }
+  const res = await getClientUploadFile(formData);
+  setUploadedPhotoUrl(res.url);
+  setFeedbackMessage({
+  type: "success",
+  text: "Photo uploaded! Click Save Changes to update your account.",
+  });
+  } catch (err) {
+  const msg = err instanceof Error ? err.message : "Failed to upload photo";
+  setFeedbackMessage({ type: "error", text: msg });
+  setLocalPreviewUrl(null);
+  } finally {
+  setIsUploadingPhoto(false);
+  }
   };
 
   const onSubmit = async (values: ProfileFormValues) => {
-    setIsSaving(true);
-    setFeedbackMessage(null);
-    try {
-      let formattedPhone = values.phone.trim();
-      if (formattedPhone.startsWith("+20")) {
-        formattedPhone = "0" + formattedPhone.slice(3).trim();
-      } else if (/^[1-9][0-9]{9}$/.test(formattedPhone)) {
-        formattedPhone = "0" + formattedPhone;
-      }
+  setIsSaving(true);
+  setFeedbackMessage(null);
+  try {
+  let formattedPhone = values.phone.trim();
+  const dialDigits = selectedCountry.dialCode.replace(/\D/g, "");
+  const cleanDigits = formattedPhone.replace(/\D/g, "");
+  const withoutLeadingZero = cleanDigits.startsWith("0") ? cleanDigits.slice(1) : cleanDigits;
 
-      const payload = await getClientUpdateUserProfile({
-        firstName: values.firstName.trim(),
-        lastName: values.lastName.trim(),
-        phone: formattedPhone,
-        ...(uploadedPhotoUrl ? { profilePhoto: uploadedPhotoUrl } : {}),
-      });
+  if (selectedCountry.code === "EG") {
+  formattedPhone = withoutLeadingZero.startsWith(dialDigits)
+  ? "0" + withoutLeadingZero.slice(dialDigits.length)
+  : cleanDigits.startsWith("0")
+  ? cleanDigits
+  : "0" + cleanDigits;
+  } else {
+  formattedPhone = withoutLeadingZero.startsWith(dialDigits)
+  ? `+${withoutLeadingZero}`
+  : `${selectedCountry.dialCode}${withoutLeadingZero}`;
+  }
 
-      // Update query cache immediately so both Profile page and AppSidebar update instantly
-      if (payload?.user) {
-        queryClient.setQueryData(accountKeys.profile(), payload.user);
-        setLocalPreviewUrl(null);
-        setUploadedPhotoUrl(null);
-        updateSession?.({ user: payload.user });
-      }
+  const payload = await getClientUpdateUserProfile({
+  firstName: values.firstName.trim(),
+  lastName: values.lastName.trim(),
+  phone: formattedPhone,
+  ...(uploadedPhotoUrl ? { profilePhoto: uploadedPhotoUrl } : {}),
+  });
 
-      queryClient.invalidateQueries({ queryKey: accountKeys.profile() });
-      setFeedbackMessage({ type: "success", text: "Profile updated successfully!" });
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : "Failed to update profile";
-      setFeedbackMessage({ type: "error", text: msg });
-    } finally {
-      setIsSaving(false);
-    }
+  // Update query cache immediately so both Profile page and AppSidebar update instantly
+  if (payload?.user) {
+  queryClient.setQueryData(accountKeys.profile(), payload.user);
+  setLocalPreviewUrl(null);
+  setUploadedPhotoUrl(null);
+  updateSession?.({ user: payload.user });
+  }
+
+  queryClient.invalidateQueries({ queryKey: accountKeys.profile() });
+  setFeedbackMessage({ type: "success", text: "Profile updated successfully!" });
+  } catch (err) {
+  const msg = err instanceof Error ? err.message : "Failed to update profile";
+  setFeedbackMessage({ type: "error", text: msg });
+  } finally {
+  setIsSaving(false);
+  }
   };
 
   const handleEmailChangeSuccess = (updatedUser: IUser) => {
-    queryClient.setQueryData(accountKeys.profile(), updatedUser);
-    queryClient.invalidateQueries({ queryKey: accountKeys.profile() });
-    setValue("email", updatedUser.email);
-    updateSession?.({ user: updatedUser });
-    setFeedbackMessage({
-      type: "success",
-      text: "Email updated successfully!",
-    });
+  queryClient.setQueryData(accountKeys.profile(), updatedUser);
+  queryClient.invalidateQueries({ queryKey: accountKeys.profile() });
+  setValue("email", updatedUser.email);
+  updateSession?.({ user: updatedUser });
+  setFeedbackMessage({
+  type: "success",
+  text: "Email updated successfully!",
+  });
   };
 
   return (
-    <>
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-      {/* Feedback Alert */}
-      {feedbackMessage && (
-        <div
-          className={`p-3.5 rounded-xl text-xs sm:text-sm font-medium ${
-            feedbackMessage.type === "success"
-              ? "bg-emerald-50 text-emerald-800 border border-emerald-200"
-              : "bg-destructive/10 text-destructive border border-destructive/20"
-          }`}
-        >
-          {feedbackMessage.text}
-        </div>
-      )}
+  <>
+  <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+  {/* Feedback Alert */}
+  {feedbackMessage && (
+  <div
+  className={`p-3.5 text-xs sm:text-sm font-medium ${
+  feedbackMessage.type === "success"
+  ? "bg-emerald-50 text-emerald-800 border border-emerald-200"
+  : "bg-destructive/10 text-destructive border border-destructive/20"
+  }`}
+  >
+  {feedbackMessage.text}
+  </div>
+  )}
 
-      {/* Profile Photo Uploader Section */}
-      <div className="flex items-center gap-5 pb-5 border-b border-border/60">
-        <div className="relative group">
-          <div className="size-20 rounded-full bg-primary/10 border-2 border-primary/20 overflow-hidden flex items-center justify-center text-primary font-bold text-xl shadow-xs">
-            {displayPhoto ? (
-              <Image
-                src={displayPhoto}
-                alt="Profile avatar"
-                width={80}
-                height={80}
-                unoptimized
-                className="size-full object-cover"
-              />
-            ) : (
-              <span>{(user?.firstName?.[0] || user?.username?.[0] || "U").toUpperCase()}</span>
-            )}
-          </div>
+  {/* Profile Photo Uploader Section */}
+  <div className="flex items-center gap-5 pb-5 border-b border-border/60">
+  <div className="relative group">
+  <div className="size-20 bg-primary/10 border-2 border-primary/20 overflow-hidden flex items-center justify-center text-primary font-bold text-xl shadow-xs">
+  {displayPhoto ? (
+  <Image
+  src={displayPhoto}
+  alt="Profile avatar"
+  width={80}
+  height={80}
+  unoptimized
+  className="size-full object-cover"
+  />
+  ) : (
+  <span>{(user?.firstName?.[0] || user?.username?.[0] || "U").toUpperCase()}</span>
+  )}
+  </div>
 
-          {/* Uploading Spinner */}
-          {isUploadingPhoto && (
-            <div className="absolute inset-0 rounded-full bg-black/40 flex items-center justify-center text-white">
-              <Loader2 className="size-5 animate-spin" />
-            </div>
-          )}
+  {/* Uploading Spinner */}
+  {isUploadingPhoto && (
+  <div className="absolute inset-0 bg-black/40 flex items-center justify-center text-white">
+  <Loader2 className="size-5 animate-spin" />
+  </div>
+  )}
 
-          {/* Camera Upload Badge */}
-          <button
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            disabled={isUploadingPhoto}
-            aria-label="Change profile photo"
-            className="absolute bottom-0 inset-e-0 size-7 rounded-full bg-primary text-white border-2 border-white shadow-xs flex items-center justify-center hover:bg-primary-hover transition-colors cursor-pointer"
-          >
-            <Camera className="size-3.5" />
-          </button>
+  {/* Camera Upload Badge */}
+  <button
+  type="button"
+  onClick={() => fileInputRef.current?.click()}
+  disabled={isUploadingPhoto}
+  aria-label="Change profile photo"
+  className="absolute bottom-0 inset-e-0 size-7 bg-primary text-white border-2 border-white shadow-xs flex items-center justify-center hover:bg-primary-hover transition-colors cursor-pointer"
+  >
+  <Camera className="size-3.5" />
+  </button>
 
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            onChange={handlePhotoUpload}
-            className="hidden"
-          />
-        </div>
+  <input
+  ref={fileInputRef}
+  type="file"
+  accept="image/*"
+  onChange={handlePhotoUpload}
+  className="hidden"
+  />
+  </div>
 
-        <div className="space-y-0.5">
-          <span className="text-sm font-bold text-foreground block">Profile Photo</span>
-          <p className="text-xs text-muted-foreground font-mono">
-            Click the camera icon to upload a new picture.
-          </p>
-        </div>
-      </div>
+  <div className="space-y-0.5">
+  <span className="text-sm font-bold text-foreground block">Profile Photo</span>
+  <p className="text-xs text-muted-foreground font-mono">
+  Click the camera icon to upload a new picture.
+  </p>
+  </div>
+  </div>
 
-      {/* Row 1: First name & Last name */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-        <div className="space-y-1.5">
-          <label htmlFor="firstName" className="block text-xs font-mono text-muted-foreground select-none">
-            First name
-          </label>
-          <input
-            id="firstName"
-            type="text"
-            {...register("firstName")}
-            className="w-full px-4 py-2.5 rounded-lg border border-border bg-white text-sm text-foreground focus:outline-hidden focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
-          />
-          {errors.firstName && (
-            <p className="text-xs text-destructive">{errors.firstName.message}</p>
-          )}
-        </div>
+  {/* Row 1: First name & Last name */}
+  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+  <div className="space-y-1.5">
+  <label htmlFor="firstName" className="block text-xs font-mono text-muted-foreground select-none">
+  First name
+  </label>
+  <input
+  id="firstName"
+  type="text"
+  {...register("firstName")}
+  className="w-full px-4 py-2.5 border border-border bg-white text-sm text-foreground focus:outline-hidden focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
+  />
+  {errors.firstName && (
+  <p className="text-xs text-destructive">{errors.firstName.message}</p>
+  )}
+  </div>
 
-        <div className="space-y-1.5">
-          <label htmlFor="lastName" className="block text-xs font-mono text-muted-foreground select-none">
-            Last name
-          </label>
-          <input
-            id="lastName"
-            type="text"
-            {...register("lastName")}
-            className="w-full px-4 py-2.5 rounded-lg border border-border bg-white text-sm text-foreground focus:outline-hidden focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
-          />
-          {errors.lastName && (
-            <p className="text-xs text-destructive">{errors.lastName.message}</p>
-          )}
-        </div>
-      </div>
+  <div className="space-y-1.5">
+  <label htmlFor="lastName" className="block text-xs font-mono text-muted-foreground select-none">
+  Last name
+  </label>
+  <input
+  id="lastName"
+  type="text"
+  {...register("lastName")}
+  className="w-full px-4 py-2.5 border border-border bg-white text-sm text-foreground focus:outline-hidden focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
+  />
+  {errors.lastName && (
+  <p className="text-xs text-destructive">{errors.lastName.message}</p>
+  )}
+  </div>
+  </div>
 
-      {/* Row 2: Username (Strictly disabled) */}
-      <div className="space-y-1.5">
-        <label htmlFor="username" className="block text-xs font-mono text-muted-foreground select-none">
-          Username
-        </label>
-        <input
-          id="username"
-          type="text"
-          value={user?.username || ""}
-          disabled
-          className="w-full px-4 py-2.5 rounded-lg border border-border/80 bg-slate-100 text-sm font-mono text-muted-foreground cursor-not-allowed select-none opacity-90"
-        />
-      </div>
+  {/* Row 2: Username (Strictly disabled) */}
+  <div className="space-y-1.5">
+  <label htmlFor="username" className="block text-xs font-mono text-muted-foreground select-none">
+  Username
+  </label>
+  <input
+  id="username"
+  type="text"
+  value={user?.username || ""}
+  disabled
+  className="w-full px-4 py-2.5 border border-border/80 bg-slate-100 text-sm font-mono text-muted-foreground cursor-not-allowed select-none opacity-90"
+  />
+  </div>
 
-      {/* Row 3: Email (Strictly readOnly with Modal Dialog on Change button) */}
-      <div className="space-y-1.5">
-        <div className="flex items-center justify-between">
-          <label htmlFor="email" className="block text-xs font-mono text-muted-foreground select-none">
-            Email
-          </label>
+  {/* Row 3: Email (Strictly readOnly with Modal Dialog on Change button) */}
+  <div className="space-y-1.5">
+  <div className="flex items-center justify-between">
+  <label htmlFor="email" className="block text-xs font-mono text-muted-foreground select-none">
+  Email
+  </label>
 
-          {/* Change Button Trigger */}
-          <button
-            type="button"
-            onClick={() => setIsChangeEmailModalOpen(true)}
-            className="text-xs text-primary hover:underline font-mono inline-flex items-center gap-1 cursor-pointer select-none"
-          >
-            <Pencil className="size-3" />
-            <span>Change</span>
-          </button>
-        </div>
+  {/* Change Button Trigger */}
+  <button
+  type="button"
+  onClick={() => setIsChangeEmailModalOpen(true)}
+  className="text-xs text-primary hover:underline font-mono inline-flex items-center gap-1 cursor-pointer select-none"
+  >
+  <Pencil className="size-3" />
+  <span>Change</span>
+  </button>
+  </div>
 
-        {/* Read-Only Email Input */}
-        <input
-          id="email"
-          type="email"
-          readOnly
-          {...register("email")}
-          className="w-full px-4 py-2.5 rounded-lg border border-border/80 bg-slate-50/70 text-sm text-foreground focus:outline-hidden cursor-default select-all"
-        />
-        {errors.email && (
-          <p className="text-xs text-destructive">{errors.email.message}</p>
-        )}
-      </div>
+  {/* Read-Only Email Input */}
+  <input
+  id="email"
+  type="email"
+  readOnly
+  {...register("email")}
+  className="w-full px-4 py-2.5 border border-border/80 bg-slate-50/70 text-sm text-foreground focus:outline-hidden cursor-default select-all"
+  />
+  {errors.email && (
+  <p className="text-xs text-destructive">{errors.email.message}</p>
+  )}
+  </div>
 
-      {/* Row 4: Phone with Country Code Selector */}
-      <div className="space-y-1.5">
-        <label htmlFor="phone" className="block text-xs font-mono text-muted-foreground select-none">
-          Phone
-        </label>
-        <div className="relative flex items-center rounded-lg border border-border bg-white focus-within:border-primary focus-within:ring-1 focus-within:ring-primary transition-colors">
-          {/* Country Selector Dropdown */}
-          <div className="relative shrink-0" ref={countryDropdownRef}>
-            <button
-              type="button"
-              onClick={() => setIsCountryDropdownOpen((prev) => !prev)}
-              aria-label="Select country code"
-              className="flex items-center gap-1.5 px-3 py-2.5 border-e border-border text-xs font-mono text-foreground hover:bg-slate-50 transition-colors select-none cursor-pointer"
-            >
-              <span className="text-base leading-none">{selectedCountry.flag}</span>
-              <span>{selectedCountry.code}({selectedCountry.dialCode})</span>
-              <ChevronDown className="size-3.5 text-muted-foreground" />
-            </button>
+  {/* Row 4: Phone with Country Code Selector */}
+  <div className="space-y-1.5">
+  <label htmlFor="phone" className="block text-xs font-mono text-muted-foreground select-none">
+  Phone
+  </label>
+  <div className="relative flex items-center border border-border bg-white focus-within:border-primary focus-within:ring-1 focus-within:ring-primary transition-colors">
+  {/* Country Selector Dropdown */}
+  <div className="relative shrink-0" ref={countryDropdownRef}>
+  <button
+  type="button"
+  onClick={() => setIsCountryDropdownOpen((prev) => !prev)}
+  aria-label="Select country code"
+  className="flex items-center gap-1.5 px-3 py-2.5 border-e border-border text-xs font-mono text-foreground hover:bg-slate-50 transition-colors select-none cursor-pointer"
+  >
+  <span className="text-base leading-none">{selectedCountry.flag}</span>
+  <span>{selectedCountry.code}({selectedCountry.dialCode})</span>
+  <ChevronDown className="size-3.5 text-muted-foreground" />
+  </button>
 
-            {isCountryDropdownOpen && (
-              <div className="absolute inset-s-0 top-full mt-1 w-56 rounded-lg border border-border bg-popover p-1 shadow-lg z-50 animate-in fade-in-50">
-                {COUNTRIES.map((c) => (
-                  <button
-                    key={c.code}
-                    type="button"
-                    onClick={() => {
-                      setSelectedCountry(c);
-                      setIsCountryDropdownOpen(false);
-                    }}
-                    className={`w-full flex items-center justify-between px-3 py-2 rounded-md text-xs font-mono transition-colors cursor-pointer ${
-                      selectedCountry.code === c.code
-                        ? "bg-primary/10 text-primary font-bold"
-                        : "hover:bg-muted text-foreground"
-                    }`}
-                  >
-                    <div className="flex items-center gap-2">
-                      <span className="text-base">{c.flag}</span>
-                      <span>{c.name}</span>
-                    </div>
-                    {selectedCountry.code === c.code && <Check className="size-3.5 text-primary" />}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
+  {isCountryDropdownOpen && (
+  <div className="absolute inset-s-0 top-full mt-1 w-56 border border-border bg-popover p-1 shadow-lg z-50 animate-in fade-in-50">
+  {COUNTRIES.map((c) => (
+  <button
+  key={c.code}
+  type="button"
+  onClick={() => {
+  setSelectedCountry(c);
+  setIsCountryDropdownOpen(false);
+  }}
+  className={`w-full flex items-center justify-between px-3 py-2 text-xs font-mono transition-colors cursor-pointer ${
+  selectedCountry.code === c.code
+  ? "bg-primary/10 text-primary font-bold"
+  : "hover:bg-muted text-foreground"
+  }`}
+  >
+  <div className="flex items-center gap-2">
+  <span className="text-base">{c.flag}</span>
+  <span>{c.name}</span>
+  </div>
+  {selectedCountry.code === c.code && <Check className="size-3.5 text-primary" />}
+  </button>
+  ))}
+  </div>
+  )}
+  </div>
 
-          {/* Phone Number Input */}
-          <input
-            id="phone"
-            type="tel"
-            {...register("phone")}
-            placeholder="1012345678"
-            className="flex-1 px-4 py-2.5 bg-transparent text-sm text-foreground focus:outline-hidden"
-          />
-        </div>
-        {errors.phone && (
-          <p className="text-xs text-destructive">{errors.phone.message}</p>
-        )}
-      </div>
+  {/* Phone Number Input */}
+  <input
+  id="phone"
+  type="tel"
+  {...register("phone")}
+  placeholder="1012345678"
+  className="flex-1 px-4 py-2.5 bg-transparent text-sm text-foreground focus:outline-hidden"
+  />
+  </div>
+  {errors.phone && (
+  <p className="text-xs text-destructive">{errors.phone.message}</p>
+  )}
+  </div>
 
-      {/* Bottom Action Buttons: Delete My Account & Save Changes */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-border/60">
-        <button
-          type="button"
-          onClick={() => setIsDeleteDialogOpen(true)}
-          className="w-full sm:w-auto px-6 py-2.5 rounded-lg text-xs sm:text-sm font-medium text-destructive bg-red-50 hover:bg-red-100 transition-colors cursor-pointer select-none"
-        >
-          Delete My Account
-        </button>
+  {/* Bottom Action Buttons: Delete My Account & Save Changes */}
+  <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-border/60">
+  <button
+  type="button"
+  onClick={() => setIsDeleteDialogOpen(true)}
+  className="w-full sm:w-auto px-6 py-2.5 text-xs sm:text-sm font-medium text-destructive bg-red-50 hover:bg-red-100 transition-colors cursor-pointer select-none"
+  >
+  Delete My Account
+  </button>
 
-        <button
-          type="submit"
-          disabled={isSaving || isUploadingPhoto}
-          className="w-full sm:w-auto px-8 py-2.5 rounded-lg bg-primary hover:bg-primary-hover disabled:opacity-70 text-white font-medium text-xs sm:text-sm flex items-center justify-center gap-2 shadow-xs transition-colors cursor-pointer select-none"
-        >
-          {isSaving && <Loader2 className="size-4 animate-spin" />}
-          <span>Save Changes</span>
-        </button>
-      </div>
-    </form>
+  <button
+  type="submit"
+  disabled={isSaving || isUploadingPhoto}
+  className="w-full sm:w-auto px-8 py-2.5 bg-primary hover:bg-primary-hover disabled:opacity-70 text-white font-medium text-xs sm:text-sm flex items-center justify-center gap-2 shadow-xs transition-colors cursor-pointer select-none"
+  >
+  {isSaving && <Loader2 className="size-4 animate-spin" />}
+  <span>Save Changes</span>
+  </button>
+  </div>
+  </form>
 
-    {/* Change Email Multi-Step Modal Dialog rendered outside the form */}
-    {isChangeEmailModalOpen && (
-      <ChangeEmailDialog
-        isOpen={isChangeEmailModalOpen}
-        onClose={() => setIsChangeEmailModalOpen(false)}
-        onSuccess={handleEmailChangeSuccess}
-        currentEmail={user?.email}
-      />
-    )}
+  {/* Change Email Multi-Step Modal Dialog rendered outside the form */}
+  {isChangeEmailModalOpen && (
+  <ChangeEmailDialog
+  isOpen={isChangeEmailModalOpen}
+  onClose={() => setIsChangeEmailModalOpen(false)}
+  onSuccess={handleEmailChangeSuccess}
+  currentEmail={user?.email}
+  />
+  )}
 
-    {/* Delete Account Modal Dialog */}
-    {isDeleteDialogOpen && (
-      <DeleteAccountDialog
-        isOpen={isDeleteDialogOpen}
-        onClose={() => setIsDeleteDialogOpen(false)}
-      />
-    )}
+  {/* Delete Account Modal Dialog */}
+  {isDeleteDialogOpen && (
+  <DeleteAccountDialog
+  isOpen={isDeleteDialogOpen}
+  onClose={() => setIsDeleteDialogOpen(false)}
+  />
+  )}
   </>
 );
 }

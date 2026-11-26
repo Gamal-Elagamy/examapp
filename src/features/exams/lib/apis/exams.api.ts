@@ -132,6 +132,7 @@ export interface ExamMutationPayload {
   image: string;
   duration: number;
   diplomaId: string;
+  immutable?: boolean;
 }
 
 export interface ExamMutationResponse {

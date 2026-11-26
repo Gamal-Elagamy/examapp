@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { ForgotPasswordRoute } from "@/features/auth/routes/forgot-password.route";
 
 export const metadata: Metadata = {
-  title: "Forgot Password | Elevate Exam App",
+  title: "Forgot Password",
   description: "Recover your Elevate account password",
 };
 

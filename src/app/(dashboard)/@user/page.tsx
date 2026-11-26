@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { DiplomasRoute } from "@/features/diplomas/routes/diplomas.route";
 
 export const metadata: Metadata = {
-  title: "Diplomas | Elevate Exam App",
+  title: "Diplomas",
   description: "Browse available diplomas and certifications",
 };
 

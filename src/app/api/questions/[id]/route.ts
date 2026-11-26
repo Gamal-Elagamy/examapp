@@ -43,6 +43,14 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     );
   }
 
+  const role = session.user?.role;
+  if (role !== "ADMIN" && role !== "SUPER_ADMIN") {
+    return NextResponse.json(
+      { status: false, code: 403, message: "Forbidden" },
+      { status: 403 },
+    );
+  }
+
   const { id } = await params;
 
   try {
@@ -65,6 +73,14 @@ export async function DELETE(_request: NextRequest, { params }: RouteParams) {
     return NextResponse.json(
       { status: false, code: 401, message: "Unauthorized" },
       { status: 401 },
+    );
+  }
+
+  const role = session.user?.role;
+  if (role !== "ADMIN" && role !== "SUPER_ADMIN") {
+    return NextResponse.json(
+      { status: false, code: 403, message: "Forbidden" },
+      { status: 403 },
     );
   }
 

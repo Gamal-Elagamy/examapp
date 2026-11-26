@@ -53,6 +53,14 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     );
   }
 
+  const role = session.user?.role;
+  if (role !== "ADMIN" && role !== "SUPER_ADMIN") {
+    return NextResponse.json(
+      { status: false, code: 403, message: "Forbidden" },
+      { status: 403 },
+    );
+  }
+
   const { examId } = await params;
 
   try {

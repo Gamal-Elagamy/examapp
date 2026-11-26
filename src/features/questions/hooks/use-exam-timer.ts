@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 
 interface UseExamTimerOptions {
   examId: string;
@@ -14,11 +14,16 @@ export function useExamTimer({
   onTimeUp,
 }: UseExamTimerOptions) {
   const totalSeconds = useMemo(
-    () => Math.max(1, totalDurationMinutes * 60),
+    () => Math.max(1, Math.round(totalDurationMinutes * 60)),
     [totalDurationMinutes],
   );
 
   const storageKey = `exam_timer_${examId}`;
+  const onTimeUpRef = useRef(onTimeUp);
+  useEffect(() => {
+    onTimeUpRef.current = onTimeUp;
+  }, [onTimeUp]);
+  const hasCalledTimeUpRef = useRef(false);
 
   // Read or initialize target end time in sessionStorage so refresh doesn't reset the countdown
   const getInitialRemaining = useCallback((): number => {
@@ -44,24 +49,42 @@ export function useExamTimer({
   const [remainingSeconds, setRemainingSeconds] = useState<number>(getInitialRemaining);
 
   useEffect(() => {
-    if (remainingSeconds <= 0) {
-      onTimeUp?.();
-      return;
+    if (typeof window === "undefined") return;
+
+    const tick = () => {
+      const storedEndTime = sessionStorage.getItem(storageKey);
+      if (!storedEndTime) return;
+
+      const now = Date.now();
+      const parsedEndTime = parseInt(storedEndTime, 10);
+      const remaining = Math.max(0, Math.round((parsedEndTime - now) / 1000));
+
+      setRemainingSeconds(remaining);
+
+      if (remaining <= 0) {
+        if (!hasCalledTimeUpRef.current) {
+          hasCalledTimeUpRef.current = true;
+          onTimeUpRef.current?.();
+        }
+      }
+    };
+
+    // Initial check on mount
+    const storedEndTime = sessionStorage.getItem(storageKey);
+    if (storedEndTime) {
+      const parsedEndTime = parseInt(storedEndTime, 10);
+      if (parsedEndTime <= Date.now()) {
+        if (!hasCalledTimeUpRef.current) {
+          hasCalledTimeUpRef.current = true;
+          onTimeUpRef.current?.();
+        }
+        return;
+      }
     }
 
-    const interval = setInterval(() => {
-      setRemainingSeconds((prev) => {
-        if (prev <= 1) {
-          clearInterval(interval);
-          onTimeUp?.();
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-
+    const interval = setInterval(tick, 1000);
     return () => clearInterval(interval);
-  }, [onTimeUp, remainingSeconds]);
+  }, [storageKey]);
 
   const minutes = Math.floor(remainingSeconds / 60);
   const seconds = remainingSeconds % 60;
@@ -74,8 +97,11 @@ export function useExamTimer({
   );
 
   const resetTimer = useCallback(() => {
+    hasCalledTimeUpRef.current = false;
     if (typeof window !== "undefined") {
-      sessionStorage.removeItem(storageKey);
+      const now = Date.now();
+      const newEndTime = now + totalSeconds * 1000;
+      sessionStorage.setItem(storageKey, newEndTime.toString());
     }
     setRemainingSeconds(totalSeconds);
   }, [storageKey, totalSeconds]);

@@ -35,10 +35,18 @@ export function useLoginMutation() {
       const isAdmin =
         userRole === USER_ROLES.ADMIN || userRole === USER_ROLES.SUPER_ADMIN;
 
-      if (isAdmin && (!callbackUrl || callbackUrl === "/" || callbackUrl === ROUTES.HOME)) {
+      // Sanitize callbackUrl to prevent open redirects (allow relative paths only)
+      const safeCallbackUrl =
+        callbackUrl &&
+        callbackUrl.startsWith("/") &&
+        !callbackUrl.startsWith("//")
+          ? callbackUrl
+          : ROUTES.HOME;
+
+      if (isAdmin && (safeCallbackUrl === "/" || safeCallbackUrl === ROUTES.HOME)) {
         router.push(ROUTES.ADMIN.DIPLOMAS);
       } else {
-        router.push(callbackUrl || ROUTES.HOME);
+        router.push(safeCallbackUrl);
       }
       router.refresh();
     },

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { ProfileRoute } from "@/features/account/routes/profile.route";
 
 export const metadata: Metadata = {
-  title: "Profile | Elevate Exam App",
+  title: "Profile",
   description: "Manage your personal account profile details.",
 };
 

@@ -5,7 +5,7 @@ import { AdminDiplomasRoute } from "@/features/admin/routes/admin-diplomas.route
 import type { IDiplomasPayload } from "@/shared/lib/types/diploma";
 
 export const metadata: Metadata = {
-  title: "Admin Diplomas | Elevate Exam App",
+  title: "Admin Diplomas",
   description: "Manage diplomas, search, and filter certifications.",
 };
 
@@ -15,7 +15,10 @@ export default async function AdminDiplomasPage() {
 
   if (session?.token) {
     try {
-      const res = await getDiplomas({ page: 1, limit: 12 }, session.token);
+      const res = await getDiplomas(
+        { page: 1, limit: 12, sortBy: "title", sortOrder: "asc" },
+        session.token,
+      );
       if (res.status && res.payload) {
         initialData = res.payload;
       }

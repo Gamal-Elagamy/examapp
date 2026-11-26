@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { ChangePasswordRoute } from "@/features/account/routes/change-password.route";
 
 export const metadata: Metadata = {
-  title: "Admin Change Password | Elevate Exam App",
+  title: "Admin Change Password",
   description: "Update your admin account password.",
 };
 

@@ -6,7 +6,6 @@ import type {
   IQuestion,
   GetExamQuestionsParams,
 } from "@/shared/lib/types/question";
-import type { IExamDetailsPayload } from "@/shared/lib/types/exam";
 
 export interface IQuestionPayload {
   question: IQuestion;
@@ -72,47 +71,10 @@ export async function getClientExamQuestions(
   return data.payload;
 }
 
-export async function getExamById(
-  id: string,
-  token?: string,
-): Promise<IApiResponse<IExamDetailsPayload>> {
-  const url = `${env.NEXT_PUBLIC_API_URL}/exams/${id}`;
-  const headers: HeadersInit = {
-    "Content-Type": "application/json",
-  };
-
-  if (token) {
-    headers.Authorization = `Bearer ${token}`;
-  }
-
-  const res = await fetch(url, {
-    method: "GET",
-    headers,
-    cache: "no-store",
-  });
-
-  const payload: IApiResponse<IExamDetailsPayload> = await res.json().catch(() => null);
-
-  if (!res.ok || !payload || !payload.status) {
-    throw new Error(extractErrorMessage(payload, "Failed to fetch exam details"));
-  }
-
-  return payload;
-}
-
-export async function getClientExamById(
-  id: string,
-): Promise<IExamDetailsPayload> {
-  const url = `/api/exams/${id}`;
-  const res = await fetch(url);
-  const data: IApiResponse<IExamDetailsPayload> = await res.json().catch(() => null);
-
-  if (!res.ok || !data || !data.status || !data.payload) {
-    throw new Error(extractErrorMessage(data, "Failed to fetch exam details"));
-  }
-
-  return data.payload;
-}
+export {
+  getExamById,
+  getClientExamById,
+} from "@/features/exams/lib/apis/exams.api";
 
 export async function getQuestionById(
   id: string,
@@ -201,6 +163,7 @@ export interface ICreateQuestionAnswer {
 export interface ICreateQuestionBody {
   text: string;
   answers: ICreateQuestionAnswer[];
+  immutable?: boolean;
 }
 
 export async function createQuestion(

@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { ExamQuestionsRoute } from "@/features/questions/routes/exam-questions.route";
 
 export const metadata: Metadata = {
-  title: "Exam Questions | Elevate Exam App",
+  title: "Exam Questions",
   description: "Answer questions for the selected exam.",
 };
 

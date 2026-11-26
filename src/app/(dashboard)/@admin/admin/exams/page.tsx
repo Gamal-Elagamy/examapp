@@ -5,7 +5,7 @@ import { AdminExamsRoute } from "@/features/admin/routes/admin-exams.route";
 import type { IExamsPayload } from "@/shared/lib/types/exam";
 
 export const metadata: Metadata = {
-  title: "Admin Exams | Elevate Exam App",
+  title: "Admin Exams",
   description: "Manage, filter, and create exams across diplomas.",
 };
 
@@ -15,7 +15,10 @@ export default async function AdminExamsPage() {
 
   if (session?.token) {
     try {
-      const res = await getExams({ page: 1, limit: 12 }, session.token);
+      const res = await getExams(
+        { page: 1, limit: 12, sortBy: "title", sortOrder: "asc" },
+        session.token,
+      );
       if (res?.status && res?.payload) {
         initialData = res.payload;
       }

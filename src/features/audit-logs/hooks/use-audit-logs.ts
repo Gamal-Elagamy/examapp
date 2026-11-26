@@ -10,11 +10,19 @@ export function useAuditLogs(
   params?: GetAuditLogsParams,
   initialData?: IAuditLogsPayload,
 ) {
+  const isDefaultParams =
+    params?.page === 1 &&
+    !params?.category &&
+    !params?.action &&
+    !params?.actorUserId &&
+    params?.sortBy === "createdAt" &&
+    params?.sortOrder === "desc";
+
   return useQuery({
     queryKey: auditLogKeys.list(params),
     queryFn: () => getClientAuditLogs(params),
-    initialData,
+    initialData: isDefaultParams ? initialData : undefined,
+    initialDataUpdatedAt: 0,
     placeholderData: keepPreviousData,
-    staleTime: 30 * 1000,
   });
 }

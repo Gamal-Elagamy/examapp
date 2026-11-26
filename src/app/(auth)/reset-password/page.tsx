@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { ResetPasswordRoute } from "@/features/auth/routes/reset-password.route";
 
 export const metadata: Metadata = {
-  title: "Reset Password | Elevate Exam App",
+  title: "Reset Password",
   description: "Create a new password for your Elevate account",
 };
 

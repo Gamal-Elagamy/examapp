@@ -4,33 +4,29 @@ import { useEffect, useState, useCallback } from "react";
 
 const STORAGE_KEY = "elevate_otp_resend_target";
 
-function getInitialRemaining(defaultDuration: number): number {
-  if (typeof window === "undefined") return defaultDuration;
-
-  const storedTarget = localStorage.getItem(STORAGE_KEY);
-  if (!storedTarget) {
-    const target = Date.now() + defaultDuration * 1000;
-    localStorage.setItem(STORAGE_KEY, target.toString());
-    return defaultDuration;
-  }
-
-  const targetTime = parseInt(storedTarget, 10);
-  const diff = Math.ceil((targetTime - Date.now()) / 1000);
-
-  return diff > 0 ? diff : 0;
-}
-
 export function useOtpTimer(defaultDuration = 60) {
-  // Lazy state initialization runs before render, avoiding setState inside useEffect
-  const [remainingSeconds, setRemainingSeconds] = useState<number>(() =>
-    getInitialRemaining(defaultDuration),
-  );
+  const [targetTimestamp, setTargetTimestamp] = useState<number | null>(() => {
+    if (typeof window === "undefined") return null;
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (!stored) return null;
+    const parsed = parseInt(stored, 10);
+    return parsed > Date.now() ? parsed : null;
+  });
+
+  const [remainingSeconds, setRemainingSeconds] = useState<number>(() => {
+    if (typeof window === "undefined") return 0;
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (!stored) return 0;
+    const diff = Math.ceil((parseInt(stored, 10) - Date.now()) / 1000);
+    return diff > 0 ? diff : 0;
+  });
 
   const startTimer = useCallback(
     (seconds = defaultDuration) => {
       if (typeof window === "undefined") return;
       const target = Date.now() + seconds * 1000;
       localStorage.setItem(STORAGE_KEY, target.toString());
+      setTargetTimestamp(target);
       setRemainingSeconds(seconds);
     },
     [defaultDuration],
@@ -39,31 +35,30 @@ export function useOtpTimer(defaultDuration = 60) {
   const resetTimer = useCallback(() => {
     if (typeof window === "undefined") return;
     localStorage.removeItem(STORAGE_KEY);
+    setTargetTimestamp(null);
     setRemainingSeconds(0);
   }, []);
 
   useEffect(() => {
-    // Only subscribe to the interval callback; no synchronous setState in effect body
-    const interval = setInterval(() => {
-      const storedTarget = localStorage.getItem(STORAGE_KEY);
-      if (!storedTarget) {
+    if (!targetTimestamp) return;
+
+    const updateRemaining = () => {
+      const diff = Math.ceil((targetTimestamp - Date.now()) / 1000);
+      if (diff <= 0) {
         setRemainingSeconds(0);
-        return;
+        setTargetTimestamp(null);
+        if (typeof window !== "undefined") {
+          localStorage.removeItem(STORAGE_KEY);
+        }
+      } else {
+        setRemainingSeconds(diff);
       }
+    };
 
-      const targetTime = parseInt(storedTarget, 10);
-      const diff = Math.ceil((targetTime - Date.now()) / 1000);
-      const remaining = diff > 0 ? diff : 0;
-
-      setRemainingSeconds(remaining);
-
-      if (remaining <= 0) {
-        clearInterval(interval);
-      }
-    }, 1000);
-
+    updateRemaining();
+    const interval = setInterval(updateRemaining, 1000);
     return () => clearInterval(interval);
-  }, []);
+  }, [targetTimestamp]);
 
   return {
     remainingSeconds,

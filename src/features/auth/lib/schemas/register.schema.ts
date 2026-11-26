@@ -11,8 +11,8 @@ export const otpStepSchema = z.object({
   code: z
     .string()
     .trim()
-    .min(5, "Verification code must be at least 5 characters")
-    .max(6, "Verification code must be at most 6 characters"),
+    .length(6, "Verification code must be exactly 6 digits")
+    .regex(/^\d{6}$/, "Verification code must contain digits only"),
 });
 export type OtpStepData = z.infer<typeof otpStepSchema>;
 
@@ -32,7 +32,13 @@ export type UserInfoStepData = z.infer<typeof userInfoStepSchema>;
 // Step 4: Password
 export const passwordStepSchema = z
   .object({
-    password: z.string().min(6, "Password must be at least 6 characters"),
+    password: z
+      .string()
+      .min(8, "Password must be at least 8 characters")
+      .regex(/[A-Z]/, "Password must include at least one uppercase letter")
+      .regex(/[a-z]/, "Password must include at least one lowercase letter")
+      .regex(/[0-9]/, "Password must include at least one number")
+      .regex(/[^A-Za-z0-9]/, "Password must include at least one special character"),
     confirmPassword: z.string().min(1, "Please confirm your password"),
   })
   .refine((data) => data.password === data.confirmPassword, {
