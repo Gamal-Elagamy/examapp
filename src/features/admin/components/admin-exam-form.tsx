@@ -56,6 +56,14 @@ export function AdminExamForm({
   const [imagePreview, setImagePreview] = useState<string>(
   initialExam?.image || "",
   );
+
+  useEffect(() => {
+    return () => {
+      if (imagePreview && imagePreview.startsWith("blob:")) {
+        URL.revokeObjectURL(imagePreview);
+      }
+    };
+  }, [imagePreview]);
   const [imageFileName, setImageFileName] = useState<string>(
   initialExam?.image ? initialExam.image.split("/").pop() || "exam-image.png" : "",
   );
@@ -121,6 +129,9 @@ export function AdminExamForm({
   setImageFileName(file.name);
 
   // Instant local preview
+  if (imagePreview && imagePreview.startsWith("blob:")) {
+    URL.revokeObjectURL(imagePreview);
+  }
   const localUrl = URL.createObjectURL(file);
   setImagePreview(localUrl);
 
@@ -129,7 +140,6 @@ export function AdminExamForm({
   formData.append("image", file);
 
   const res = await getClientUploadFile(formData);
-  setImagePreview(res.url);
   setValue("image", res.url, { shouldValidate: true });
   } catch (err) {
   const msg = err instanceof Error ? err.message : "Failed to upload image";

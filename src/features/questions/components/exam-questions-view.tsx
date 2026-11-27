@@ -13,6 +13,7 @@ import { useCreateSubmission } from "@/features/submissions/hooks/use-create-sub
 import { SubmissionResultsView } from "@/features/submissions/components/submission-results-view";
 import { QuestionCard } from "./question-card";
 import { ExamTimer } from "./exam-timer";
+import { UnansweredQuestionsDialog } from "./unanswered-questions-dialog";
 import type { IQuestion } from "@/shared/lib/types/question";
 import type { IExamDetails } from "@/shared/lib/types/exam";
 import type { ISubmissionDetailsPayload } from "@/shared/lib/types/submission";
@@ -68,6 +69,7 @@ export function ExamQuestionsView({
   const totalDurationMinutes = exam?.duration || 20;
 
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [isUnansweredDialogOpen, setIsUnansweredDialogOpen] = useState(false);
 
   // Store user's selected answers: questionId -> answerId
   const [selectedAnswers, setSelectedAnswers] = useState<Record<string, string>>(() => {
@@ -115,30 +117,32 @@ export function ExamQuestionsView({
   },
   });
 
+  const executeSubmit = useCallback(() => {
+    setIsUnansweredDialogOpen(false);
+    const formattedAnswers = Object.entries(selectedAnswers).map(
+      ([questionId, answerId]) => ({ questionId, answerId }),
+    );
+
+    submitExam({
+      examId,
+      answers: formattedAnswers,
+      startedAt,
+    });
+  }, [examId, selectedAnswers, startedAt, submitExam]);
+
   const handleSubmit = useCallback(
-  (force = false) => {
-  if (isSubmitting) return;
+    (force = false) => {
+      if (isSubmitting) return;
 
-  const answeredCount = Object.keys(selectedAnswers).length;
-  if (!force && totalQuestions > 0 && answeredCount < totalQuestions) {
-  const unanswered = totalQuestions - answeredCount;
-  const confirmSubmit = window.confirm(
-  `You have ${unanswered} unanswered question${unanswered > 1 ? "s" : ""}. Are you sure you want to submit?`,
-  );
-  if (!confirmSubmit) return;
-  }
+      const answeredCount = Object.keys(selectedAnswers).length;
+      if (!force && totalQuestions > 0 && answeredCount < totalQuestions) {
+        setIsUnansweredDialogOpen(true);
+        return;
+      }
 
-  const formattedAnswers = Object.entries(selectedAnswers).map(
-  ([questionId, answerId]) => ({ questionId, answerId }),
-  );
-
-  submitExam({
-  examId,
-  answers: formattedAnswers,
-  startedAt,
-  });
-  },
-  [examId, isSubmitting, selectedAnswers, startedAt, submitExam, totalQuestions],
+      executeSubmit();
+    },
+    [executeSubmit, isSubmitting, selectedAnswers, totalQuestions],
   );
 
   // Handle Time's Up: automatically submits the exam without confirmation prompt
@@ -378,6 +382,16 @@ export function ExamQuestionsView({
   </div>
   </div>
   )}
+
+  {/* Unanswered Questions Confirmation Dialog */}
+  <UnansweredQuestionsDialog
+    isOpen={isUnansweredDialogOpen}
+    onClose={() => setIsUnansweredDialogOpen(false)}
+    onConfirm={executeSubmit}
+    totalQuestions={totalQuestions}
+    answeredCount={Object.keys(selectedAnswers).length}
+    isSubmitting={isSubmitting}
+  />
   </div>
   );
 }

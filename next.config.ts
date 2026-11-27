@@ -8,6 +8,10 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "exam-app.elevate-bootcamp.cloud",
       },
+      {
+        protocol: "https",
+        hostname: "cdn.dribbble.com",
+      },
     ],
   },
   experimental: {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
@@ -40,6 +40,14 @@ export function AdminDiplomaForm({
   const [imagePreview, setImagePreview] = useState<string>(
   initialDiploma?.image || "",
   );
+
+  useEffect(() => {
+    return () => {
+      if (imagePreview && imagePreview.startsWith("blob:")) {
+        URL.revokeObjectURL(imagePreview);
+      }
+    };
+  }, [imagePreview]);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -78,6 +86,9 @@ export function AdminDiplomaForm({
   setIsUploadingImage(true);
 
   // Instant local preview
+  if (imagePreview && imagePreview.startsWith("blob:")) {
+    URL.revokeObjectURL(imagePreview);
+  }
   const localUrl = URL.createObjectURL(file);
   setImagePreview(localUrl);
 
@@ -86,7 +97,6 @@ export function AdminDiplomaForm({
   formData.append("image", file);
 
   const res = await getClientUploadFile(formData);
-  setImagePreview(res.url);
   setValue("image", res.url, { shouldValidate: true });
   } catch (err) {
   const msg = err instanceof Error ? err.message : "Failed to upload image";
